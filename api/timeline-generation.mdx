@@ -1,0 +1,379 @@
+---
+title: 'Timeline Generation'
+description: 'Functions that generate step-by-step timelines for scheduling algorithm animations'
+---
+
+## Overview
+
+Timeline generation functions convert scheduling algorithm results into frame-by-frame animations. Each function produces an array of timeline steps showing the CPU state, executing process, and ready queue at each time unit.
+
+## Timeline Structure
+
+All timeline functions return an array of step objects:
+
+```javascript
+[
+  {
+    tiempo: 0,           // Current time unit
+    ejecutando: 1,       // Process ID in CPU (null if idle)
+    cola: [2, 3]        // Process IDs in ready queue
+  },
+  // ... more steps
+]
+```
+
+---
+
+## Basic Timeline
+
+### generarTimelineBasico()
+
+Generates a simple timeline for non-preemptive algorithms (FIFO, SJF, Priority).
+
+```javascript
+function generarTimelineBasico(resultados)
+```
+
+<ParamField path="resultados" type="object" required>
+  Algorithm execution results containing:
+  - `inicio` (array): Start time for each process
+  - `finalizacion` (array): Completion time for each process
+  - `espera` (array): Wait time for each process
+  - `retorno` (array): Turnaround time for each process
+  - `tiempoTotal` (number): Total execution time
+</ParamField>
+
+**Algorithm:**
+
+1. Find the maximum completion time (`tiempoMax`)
+2. For each time unit from 0 to `tiempoMax`:
+   - Search for a process where `inicio[i] ≤ t < finalizacion[i]`
+   - Set `ejecutando` to the found process ID (or null)
+   - Set `cola` to empty array (queue not tracked for basic algorithms)
+
+**Returns:**
+Array of timeline steps with `tiempo`, `ejecutando`, and `cola` properties.
+
+**Example:**
+```javascript
+// FIFO results for 3 processes
+const resultados = {
+  inicio: [0, 5, 9],
+  finalizacion: [5, 9, 12],
+  espera: [0, 3, 5],
+  retorno: [5, 7, 8],
+  tiempoTotal: 12
+};
+
+const timeline = generarTimelineBasico(resultados);
+
+// Generated timeline:
+// [
+//   { tiempo: 0, ejecutando: 0, cola: [] },  // P1 executing
+//   { tiempo: 1, ejecutando: 0, cola: [] },
+//   ...
+//   { tiempo: 5, ejecutando: 1, cola: [] },  // P2 executing
+//   { tiempo: 6, ejecutando: 1, cola: [] },
+//   ...
+//   { tiempo: 9, ejecutando: 2, cola: [] },  // P3 executing
+//   ...
+// ]
+```
+
+**Use Cases:**
+- FIFO algorithm visualization
+- SJF algorithm visualization
+- Priority scheduling visualization
+
+**Note:**
+This function does not track the ready queue since FIFO, SJF, and Priority are implemented as non-preemptive in this simulator. Only the currently executing process is shown.
+
+---
+
+## Round Robin Timeline
+
+### generarTimelineRR()
+
+Generates a detailed timeline for Round Robin scheduling with quantum-based preemption and queue tracking.
+
+```javascript
+function generarTimelineRR(llegada, cpu, quantum)
+```
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process
+</ParamField>
+
+<ParamField path="quantum" type="number" required>
+  Time quantum for Round Robin scheduling
+</ParamField>
+
+**Algorithm:**
+
+1. Initialize processes with remaining CPU time
+2. Maintain a ready queue
+3. For each time unit:
+   - Add newly arrived processes to the queue
+   - If queue is empty, advance time (CPU idle)
+   - Dequeue the first process
+   - Execute for min(quantum, remaining time) units:
+     - Record timeline step at each unit
+     - Decrement remaining time
+     - Check for new arrivals during execution
+   - If process not complete, re-enqueue at the end
+   - If complete, increment completed counter
+4. Continue until all processes are complete
+
+**Returns:**
+Array of timeline steps with detailed queue states.
+
+**Example:**
+```javascript
+// 3 processes, quantum = 2
+const llegada = [0, 1, 2];
+const cpu = [5, 3, 2];
+const quantum = 2;
+
+const timeline = generarTimelineRR(llegada, cpu, quantum);
+
+// Generated timeline:
+// [
+//   { tiempo: 0, ejecutando: 0, cola: [] },        // P1 starts
+//   { tiempo: 1, ejecutando: 0, cola: [1] },       // P2 arrives, in queue
+//   { tiempo: 2, ejecutando: 1, cola: [2, 0] },    // P1 preempted, P2 executes
+//   { tiempo: 3, ejecutando: 1, cola: [2, 0] },    // P3 in queue
+//   { tiempo: 4, ejecutando: 2, cola: [0, 1] },    // P2 preempted
+//   { tiempo: 5, ejecutando: 2, cola: [0, 1] },    // P3 completes
+//   { tiempo: 6, ejecutando: 0, cola: [1] },       // P1 resumes
+//   { tiempo: 7, ejecutando: 0, cola: [1] },
+//   { tiempo: 8, ejecutando: 1, cola: [0] },       // P2 resumes
+//   { tiempo: 9, ejecutando: 0, cola: [] },        // P1 finishes last quantum
+// ]
+```
+
+**Queue Management:**
+- Processes added to queue when they arrive and CPU becomes available
+- FIFO queue ordering
+- Preempted processes go to the back of the queue
+- New arrivals during execution are added immediately
+
+**Integration:**
+Called by `simular()` when `algoritmoActual === "rr"`.
+
+---
+
+## MLFQ Timeline
+
+### generarTimelineMLFQ()
+
+Generates a complex timeline for Multi-Level Feedback Queue scheduling with dynamic priority levels.
+
+```javascript
+function generarTimelineMLFQ(llegada, cpu, quantums)
+```
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process
+</ParamField>
+
+<ParamField path="quantums" type="number[]" required>
+  Array of time quantums for each priority level (e.g., `[2, 4, 8]` for 3 levels)
+</ParamField>
+
+**Algorithm:**
+
+1. Initialize processes with:
+   - Remaining CPU time
+   - Current priority level (starts at 0)
+   - Queue membership flags
+
+2. Create multiple queues (one per quantum level)
+
+3. For each time unit:
+   - Add newly arrived processes to queue 0 (highest priority)
+   - Find the highest-priority non-empty queue
+   - If all queues empty, CPU is idle
+   - Dequeue process from highest-priority queue
+   - Get quantum for current level
+   - Execute for min(quantum, remaining time) units:
+     - Record timeline step with all queue states
+     - Decrement remaining time
+     - Check for new arrivals (added to queue 0)
+   - After quantum expires:
+     - If process complete: mark as terminated
+     - If incomplete: demote to next lower level (or stay at lowest)
+
+4. Continue until all processes complete
+
+**Returns:**
+Array of timeline steps with multi-level queue states.
+
+**Example:**
+```javascript
+// 3 processes, 3 priority levels with quantums [2, 4, 8]
+const llegada = [0, 1, 2];
+const cpu = [8, 4, 2];
+const quantums = [2, 4, 8];
+
+const timeline = generarTimelineMLFQ(llegada, cpu, quantums);
+
+// Generated timeline:
+// [
+//   { tiempo: 0, ejecutando: 0, cola: [[], [], []] },           // P1 in Q0
+//   { tiempo: 1, ejecutando: 0, cola: [[1], [], []] },          // P2 arrives
+//   { tiempo: 2, ejecutando: 1, cola: [[2], [0], []] },         // P1→Q1, P2 runs
+//   { tiempo: 3, ejecutando: 1, cola: [[2], [0], []] },         // P3 arrives
+//   { tiempo: 4, ejecutando: 2, cola: [[], [0, 1], []] },       // P2→Q1, P3 runs
+//   { tiempo: 5, ejecutando: 2, cola: [[], [0, 1], []] },       // P3 completes
+//   { tiempo: 6, ejecutando: 0, cola: [[], [1], []] },          // P1 in Q1
+//   { tiempo: 7, ejecutando: 0, cola: [[], [1], []] },
+//   { tiempo: 8, ejecutando: 0, cola: [[], [1], []] },
+//   { tiempo: 9, ejecutando: 0, cola: [[], [1], []] },          // P1→Q2
+//   { tiempo: 10, ejecutando: 1, cola: [[], [], [0]] },         // P2 in Q1
+//   ...
+// ]
+```
+
+**Queue Priority:**
+- Queue 0: Highest priority (smallest quantum)
+- Queue N-1: Lowest priority (largest quantum)
+- Always serve from highest-priority non-empty queue
+
+**Demotion Rules:**
+- New processes start at level 0
+- After using full quantum without completing, demote to next level
+- Processes at lowest level stay there
+- New arrivals always enter at level 0 (highest priority)
+
+**Integration:**
+Called by `simular()` when `algoritmoActual === "mlfq"`.
+
+---
+
+## Timeline Rendering
+
+### renderPaso()
+
+Visually renders a single timeline step to the UI.
+
+```javascript
+function renderPaso(paso)
+```
+
+<ParamField path="paso" type="object" required>
+  Timeline step object containing:
+  - `tiempo` (number): Current time unit
+  - `ejecutando` (number|null): Process ID in CPU or null if idle
+  - `cola` (number[]|number[][]): Process IDs in ready queue(s)
+</ParamField>
+
+**Behavior:**
+
+1. **CPU Display:**
+   - If `ejecutando === null`: show "Idle"
+   - Otherwise: show "P{id+1}" (e.g., P1, P2)
+
+2. **Queue Display:**
+   - Clear the queue container
+   - For each process ID in `cola`:
+     - Create a styled div with "P{id+1}"
+     - Apply animation classes
+     - Append to queue container
+
+3. **Gantt Chart:**
+   - Create a new block for this time unit
+   - Show process ID or "-" for idle
+   - Apply hover and transition effects
+   - Append to Gantt chart
+   - Auto-scroll to show latest block
+
+**Example:**
+```javascript
+// Render step showing P2 executing with P1 and P3 in queue
+renderPaso({
+  tiempo: 5,
+  ejecutando: 1,
+  cola: [0, 2]
+});
+
+// UI updates:
+// CPU Box: "P2"
+// Queue Box: [P1] [P3] (with pulse animation)
+// Gantt Chart: adds new [P2] block and scrolls to it
+```
+
+**DOM Elements:**
+- `cpuBox`: CPU state display
+- `colaBox`: Ready queue container
+- `ganttLive`: Gantt chart timeline
+
+**Styling:**
+- Queue items: `bg-gray-700 px-3 py-1 rounded-lg shadow animate-pulse`
+- Gantt blocks: `w-8 h-8 bg-indigo-500 rounded flex items-center justify-center`
+- Hover effect: `hover:scale-110` with smooth transition
+
+**Auto-Scroll:**
+The Gantt chart automatically scrolls horizontally to keep the latest block visible:
+```javascript
+gantt.scrollLeft = gantt.scrollWidth;
+```
+
+**Integration:**
+Called by `iniciarSimulacion()` every 500ms during animation playback.
+
+---
+
+## Timeline Comparison
+
+| Feature | Basic | Round Robin | MLFQ |
+|---------|-------|-------------|------|
+| Queue tracking | No | Yes (single) | Yes (multi-level) |
+| Preemption | No | Yes | Yes |
+| Complexity | O(T) | O(T×N) | O(T×N×L) |
+| Use case | FIFO, SJF, Priority | RR algorithm | MLFQ algorithm |
+
+Where:
+- T = Total execution time
+- N = Number of processes
+- L = Number of queue levels
+
+---
+
+## Integration Example
+
+Complete timeline workflow:
+
+```javascript
+// 1. User runs Round Robin simulation
+const llegada = [0, 2, 4];
+const cpu = [5, 3, 2];
+const quantum = 2;
+
+// 2. simular() generates timeline
+timelineGlobal = generarTimelineRR(llegada, cpu, quantum);
+// timelineGlobal.length = 10 (total time units)
+
+// 3. User clicks Play
+iniciarSimulacion();
+// Sets interval to call renderPaso() every 500ms
+
+// 4. Animation loop
+// t=0ms: renderPaso(timelineGlobal[0])
+// t=500ms: renderPaso(timelineGlobal[1])
+// t=1000ms: renderPaso(timelineGlobal[2])
+// ...
+// t=4500ms: renderPaso(timelineGlobal[9]) - animation completes
+
+// 5. Visual result
+// - Gantt chart shows 10 blocks
+// - CPU and queue updated 10 times
+// - User sees full Round Robin execution
+```

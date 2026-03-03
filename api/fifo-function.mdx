@@ -1,0 +1,108 @@
+---
+title: 'fifo()'
+description: 'First In First Out (FIFO) scheduling algorithm implementation'
+---
+
+## Function Signature
+
+```javascript
+function fifo(llegada, cpu)
+```
+
+## Description
+
+Implements the FIFO (First In First Out) scheduling algorithm, also known as FCFS (First Come First Served). Processes are executed in the order they arrive, forming a queue where the first process to arrive is the first to be executed. Each process runs to completion before the next one starts.
+
+## Parameters
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process. Each element represents when a process arrives in the system.
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process. Each element represents how long a process needs to execute.
+</ParamField>
+
+## Return Value
+
+Returns an object containing scheduling metrics:
+
+<ResponseField name="inicio" type="number[]">
+  Array of start times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="finalizacion" type="number[]">
+  Array of completion times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="espera" type="number[]">
+  Array of waiting times for each process. Calculated as: `start_time - arrival_time`.
+</ResponseField>
+
+<ResponseField name="retorno" type="number[]">
+  Array of turnaround times for each process. Calculated as: `completion_time - arrival_time`. Represents total time from arrival to completion.
+</ResponseField>
+
+<ResponseField name="tiempoTotal" type="number">
+  Total time required to complete all processes (maximum completion time).
+</ResponseField>
+
+## Example Usage
+
+```javascript
+// Process arrival times
+const llegada = [0, 1, 2, 3];
+
+// CPU burst times
+const cpu = [5, 3, 8, 6];
+
+// Execute FIFO algorithm
+const resultado = fifo(llegada, cpu);
+
+console.log('Start times:', resultado.inicio);
+console.log('Completion times:', resultado.finalizacion);
+console.log('Waiting times:', resultado.espera);
+console.log('Turnaround times:', resultado.retorno);
+console.log('Total time:', resultado.tiempoTotal);
+```
+
+## Sample Output
+
+```javascript
+{
+  inicio: [0, 5, 8, 16],
+  finalizacion: [5, 8, 16, 22],
+  espera: [0, 4, 6, 13],
+  retorno: [5, 7, 14, 19],
+  tiempoTotal: 22
+}
+```
+
+### Output Explanation
+
+- **Process 0**: Arrives at 0, starts at 0, runs for 5 units, completes at 5
+- **Process 1**: Arrives at 1, waits until 5, starts at 5, runs for 3 units, completes at 8
+- **Process 2**: Arrives at 2, waits until 8, starts at 8, runs for 8 units, completes at 16
+- **Process 3**: Arrives at 3, waits until 16, starts at 16, runs for 6 units, completes at 22
+
+## Algorithm Details
+
+### How It Works
+
+1. Processes are sorted by arrival time
+2. CPU executes processes in order of arrival
+3. If CPU is idle when a process arrives, it starts immediately
+4. Otherwise, the process waits for the current process to complete
+5. Each process runs to completion without interruption
+
+### Complexity
+
+- **Time Complexity**: O(n log n) due to sorting by arrival time
+- **Space Complexity**: O(n) for storing process data and results
+
+### Characteristics
+
+- **Non-preemptive**: Once a process starts, it runs to completion
+- **Simple**: Easy to understand and implement
+- **Fair**: Processes are served in arrival order
+- **Convoy Effect**: Short processes may wait for long processes ahead in queue

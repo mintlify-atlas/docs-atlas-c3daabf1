@@ -1,0 +1,344 @@
+---
+title: 'Running Simulations'
+description: 'Step-by-step guide to configuring and executing CPU scheduling simulations'
+---
+
+This guide walks you through the complete process of setting up and running a scheduling simulation, from algorithm selection to real-time visualization.
+
+## Selecting an Algorithm
+
+The simulator supports five CPU scheduling algorithms, each with distinct characteristics:
+
+<CardGroup cols={2}>
+  <Card title="FIFO (First In First Out)" icon="arrow-right">
+    Processes are executed in the order they arrive. Simple but can cause long waiting times for short processes.
+  </Card>
+  
+  <Card title="SJF (Shortest Job First)" icon="bolt">
+    Executes the process with the shortest CPU burst first. Minimizes average waiting time but requires knowing burst times in advance.
+  </Card>
+  
+  <Card title="Round Robin" icon="rotate">
+    Time-sharing algorithm that gives each process a fixed time quantum. Fair distribution but may have higher context switching overhead.
+  </Card>
+  
+  <Card title="Priority Scheduling" icon="star">
+    Processes are executed based on priority values. Important processes get CPU time first, but low-priority processes may starve.
+  </Card>
+</CardGroup>
+
+<Card title="MLFQ (Multi-Level Feedback Queue)" icon="layer-group">
+  Advanced algorithm with multiple priority queues and different quantum values per level. Processes can move between queues based on behavior.
+</Card>
+
+### How to Select
+
+On the initial screen (`pantallaInicio`), click the button corresponding to your desired algorithm. The `seleccionarAlgoritmo(tipo)` function will:
+
+1. Set the global variable `algoritmoActual` to your selection
+2. Hide the start screen
+3. Show the input form screen
+4. Update the title to display your chosen algorithm name
+
+## Entering Process Data
+
+After selecting an algorithm, you'll configure the simulation parameters.
+
+### Step 1: Specify Number of Processes
+
+<Steps>
+  <Step title="Enter Process Count">
+    In the "Número de procesos" field, enter a positive integer (e.g., 3, 5, 10). This represents how many processes will compete for CPU time.
+  </Step>
+  
+  <Step title="Generate Input Fields">
+    Click the "Continuar" button. The `generarInputs()` function validates your input and dynamically creates configuration fields for each process.
+  </Step>
+</Steps>
+
+<Warning>
+  If you enter an invalid value (zero, negative, or non-numeric), an alert will appear: "Ingrese un numero valido de procesos". Enter a valid positive integer to proceed.
+</Warning>
+
+### Step 2: Configure Algorithm-Specific Parameters
+
+Depending on your chosen algorithm, additional fields will appear:
+
+<Tabs>
+  <Tab title="FIFO">
+    No additional parameters needed. You'll only enter:
+    - **Llegada** (Arrival time) for each process
+    - **CPU** (CPU burst time) for each process
+  </Tab>
+  
+  <Tab title="SJF">
+    No additional parameters needed. You'll only enter:
+    - **Llegada** (Arrival time) for each process
+    - **CPU** (CPU burst time) for each process
+    
+    The algorithm automatically selects the process with the shortest CPU burst from those that have arrived.
+  </Tab>
+  
+  <Tab title="Round Robin">
+    **Quantum field** appears at the top of the form:
+    - Enter the time quantum (e.g., 2, 3, 4)
+    - This is the maximum time slice each process gets before being preempted
+    
+    Then enter for each process:
+    - **Llegada** (Arrival time)
+    - **CPU** (CPU burst time)
+  </Tab>
+  
+  <Tab title="Priority">
+    For each process, enter:
+    - **Llegada** (Arrival time)
+    - **CPU** (CPU burst time)
+    - **Prioridad** (Priority value)
+    
+    Lower priority values typically indicate higher priority (implementation-dependent).
+  </Tab>
+  
+  <Tab title="MLFQ">
+    **Quantums por nivel field** appears at the top:
+    - Enter comma-separated quantum values (e.g., "3,5,7")
+    - The first value is for the highest priority queue
+    - Each subsequent value is for the next lower priority level
+    
+    Then enter for each process:
+    - **Llegada** (Arrival time)
+    - **CPU** (CPU burst time)
+  </Tab>
+</Tabs>
+
+### Step 3: Fill Process Parameters
+
+For each process, you'll see a section labeled "Proceso 1", "Proceso 2", etc.
+
+**Arrival Time (Llegada):**
+- The time unit when the process arrives in the system
+- Can be 0 for processes that start immediately
+- Processes arriving later will join the ready queue when their arrival time is reached
+
+**CPU Burst Time (CPU):**
+- The total CPU time this process requires
+- Must be a positive integer
+- Represents how long the process needs to execute
+
+**Priority (Prioridad):** *(Priority algorithm only)*
+- Numeric priority value
+- Determines execution order
+- Check algorithm implementation for whether lower or higher values have priority
+
+<Note>
+  Input fields use IDs like `llegada0`, `cpu0`, `prioridad0` for the first process, `llegada1`, `cpu1`, `prioridad1` for the second, and so on. The `simular(n)` function collects these values using these IDs.
+</Note>
+
+## Running a Simulation
+
+<Steps>
+  <Step title="Click the Simular Button">
+    After entering all process data, click the "Simular" button at the bottom of the form. This triggers the `simular(n)` function.
+  </Step>
+  
+  <Step title="Algorithm Execution">
+    The system:
+    - Collects data from all input fields
+    - Executes the selected algorithm (calls `fifo()`, `sjf()`, `roundRobin()`, `prioridad()`, or `mlfq()`)
+    - Calculates metrics: start time, finish time, waiting time, turnaround time
+    - Generates a step-by-step timeline for visualization
+  </Step>
+  
+  <Step title="Results Display">
+    The results screen appears showing:
+    - A table with metrics for each process (in the `salida` div)
+    - Total execution time
+    - Visual simulation components (CPU box, ready queue, Gantt chart)
+    - Control buttons for animation
+  </Step>
+  
+  <Step title="Initial State">
+    Before starting the animation:
+    - CPU box displays "-"
+    - Ready queue is empty
+    - Gantt chart is blank
+    - Timeline is ready at step 0
+  </Step>
+</Steps>
+
+<Warning>
+  If algorithm execution fails, you'll see an alert: "Error al calcular". This usually means invalid input data. Check that all fields contain valid positive integers.
+</Warning>
+
+## Control Buttons
+
+The results screen provides four control buttons to manage the visualization:
+
+### ▶ Iniciar (Start)
+
+**Function:** `iniciarSimulacion()`
+
+- Begins the step-by-step animation
+- Updates every **500 milliseconds** (0.5 seconds)
+- Advances through the `timelineGlobal` array
+- Calls `renderPaso()` for each time unit
+
+**What happens during animation:**
+1. CPU box updates to show the executing process (or "Idle")
+2. Ready queue displays waiting processes with animated pulse effect
+3. Gantt chart adds a new block for each time unit
+4. Timeline auto-scrolls horizontally to show the latest block
+
+<Note>
+  The animation automatically stops when `pasoActual` reaches the end of the timeline.
+</Note>
+
+### ⏸ Pausar (Pause)
+
+**Function:** `pausarSimulacion()`
+
+- Stops the animation at the current step
+- Preserves the current state (doesn't reset)
+- Click "Iniciar" again to resume from the paused position
+- Uses `clearInterval()` to stop the animation timer
+
+### 🔄 Reiniciar (Reset)
+
+**Function:** `reiniciarSimulacion()`
+
+- Resets `pasoActual` to 0
+- Clears all visual components:
+  - CPU box resets to "-"
+  - Ready queue becomes empty
+  - Gantt chart clears all blocks
+- **Preserves** the results table and calculated metrics
+- Click "Iniciar" to watch the simulation from the beginning
+
+### ⬅ Volver al inicio (Back to Start)
+
+**Function:** `volverInicio()`
+
+- Returns to the algorithm selection screen
+- Clears **all data**:
+  - Timeline and step counter
+  - Visual components (CPU, queue, Gantt)
+  - Results table
+  - Input fields and values
+- Hides results and form screens
+- Use this to start a completely new simulation
+
+## Real-Time Visualization Features
+
+As the simulation runs, observe these dynamic elements:
+
+<Accordion title="CPU Box Updates">
+  The CPU box (`cpuBox`) changes every 500ms:
+  
+  - **"-"**: Initial state, no simulation started
+  - **"Idle"**: CPU is not executing any process (waiting for arrivals or queue is empty)
+  - **"P1", "P2", "P3"**, etc.: Shows which process is currently executing
+  
+  The box has a visually striking gradient (indigo to purple) and is 32x32 pixels, making it easy to track.
+</Accordion>
+
+<Accordion title="Queue Animation">
+  The `colaBox` shows processes in the ready queue:
+  
+  - Each process appears as a rounded gray box with padding
+  - Boxes have a pulse animation (`animate-pulse` class)
+  - For FIFO and SJF: Simple array of process IDs
+  - For Round Robin: Processes cycle through as they use their quantum
+  - For MLFQ: Multiple queue levels can be visible (nested structure)
+  
+  The queue dynamically updates as processes arrive, execute, complete, or change priority levels.
+</Accordion>
+
+<Accordion title="Gantt Chart Construction">
+  The `ganttLive` timeline builds from left to right:
+  
+  - Each time unit adds one 8x8 pixel block
+  - Blocks are indigo-colored and rounded
+  - Display the executing process ID or "-" for idle
+  - Hover over blocks for a scale effect (1.1x zoom)
+  - Container auto-scrolls to keep the latest block visible
+  - Horizontal scrollbar appears for long simulations
+  
+  This creates a complete visual history of CPU usage over time.
+</Accordion>
+
+## Timeline Generation
+
+The simulator uses different timeline generation methods based on the algorithm:
+
+**Basic Timeline** (FIFO, SJF, Priority):
+- `generarTimelineBasico()` creates a snapshot for each time unit
+- Determines which process is executing at time t
+- Queue information is limited (not dynamically tracked)
+
+**Round Robin Timeline:**
+- `generarTimelineRR()` simulates the circular queue behavior
+- Tracks remaining CPU time for each process
+- Processes are added to the queue as they arrive
+- After using quantum, process goes to the back of the queue
+- Accurately shows queue state at each time unit
+
+**MLFQ Timeline:**
+- `generarTimelineMLFQ()` manages multiple priority queues
+- New processes start in the highest priority queue (queue 0)
+- Processes use quantum for their current level
+- If not completed, process moves to the next lower priority queue
+- Shows complex queue dynamics across multiple levels
+
+<Tip>
+  For Round Robin and MLFQ, the queue display is particularly informative, showing exactly which processes are waiting and in which queue level.
+</Tip>
+
+## Example Workflow
+
+Here's a complete example of running a Round Robin simulation:
+
+<Steps>
+  <Step title="Select Round Robin">
+    Click the yellow "Round Robin" button on the start screen.
+  </Step>
+  
+  <Step title="Enter 3 Processes">
+    Type "3" in the "Número de procesos" field and click "Continuar".
+  </Step>
+  
+  <Step title="Set Quantum">
+    In the Quantum field at the top, enter "2".
+  </Step>
+  
+  <Step title="Configure Process 1">
+    - Llegada: 0
+    - CPU: 5
+  </Step>
+  
+  <Step title="Configure Process 2">
+    - Llegada: 1
+    - CPU: 3
+  </Step>
+  
+  <Step title="Configure Process 3">
+    - Llegada: 2
+    - CPU: 4
+  </Step>
+  
+  <Step title="Run Simulation">
+    Click "Simular". The results screen appears with calculated metrics.
+  </Step>
+  
+  <Step title="Start Animation">
+    Click "▶ Iniciar". Watch as:
+    - P1 executes for 2 units (quantum)
+    - P2 enters queue at time 1
+    - P1 moves to back of queue
+    - P2 executes for 2 units
+    - P3 enters queue at time 2
+    - Processes continue cycling until all complete
+  </Step>
+  
+  <Step title="Review Results">
+    Observe the Gantt chart showing the interleaved execution pattern typical of Round Robin scheduling.
+  </Step>
+</Steps>

@@ -1,0 +1,114 @@
+---
+title: 'sjf()'
+description: 'Shortest Job First (SJF) scheduling algorithm implementation'
+---
+
+## Function Signature
+
+```javascript
+function sjf(llegada, cpu)
+```
+
+## Description
+
+Implements the SJF (Shortest Job First) scheduling algorithm. Among available processes, the one with the shortest CPU burst time is executed first. This is a non-preemptive algorithm that minimizes average waiting time.
+
+## Parameters
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process. Each element represents when a process arrives in the system.
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process. Each element represents how long a process needs to execute.
+</ParamField>
+
+## Return Value
+
+Returns an object containing scheduling metrics:
+
+<ResponseField name="inicio" type="number[]">
+  Array of start times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="finalizacion" type="number[]">
+  Array of completion times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="espera" type="number[]">
+  Array of waiting times for each process. Calculated as: `start_time - arrival_time`.
+</ResponseField>
+
+<ResponseField name="retorno" type="number[]">
+  Array of turnaround times for each process. Calculated as: `completion_time - arrival_time`. Represents total time from arrival to completion.
+</ResponseField>
+
+<ResponseField name="tiempoTotal" type="number">
+  Total time required to complete all processes (maximum completion time).
+</ResponseField>
+
+## Example Usage
+
+```javascript
+// Process arrival times
+const llegada = [0, 1, 2, 3];
+
+// CPU burst times
+const cpu = [8, 4, 2, 1];
+
+// Execute SJF algorithm
+const resultado = sjf(llegada, cpu);
+
+console.log('Start times:', resultado.inicio);
+console.log('Completion times:', resultado.finalizacion);
+console.log('Waiting times:', resultado.espera);
+console.log('Turnaround times:', resultado.retorno);
+console.log('Total time:', resultado.tiempoTotal);
+```
+
+## Sample Output
+
+```javascript
+{
+  inicio: [0, 9, 11, 8],
+  finalizacion: [8, 13, 13, 9],
+  espera: [0, 8, 9, 5],
+  retorno: [8, 12, 11, 6],
+  tiempoTotal: 13
+}
+```
+
+### Output Explanation
+
+- **Process 0**: Arrives at 0, starts immediately (only available process), runs for 8 units, completes at 8
+- **Process 3**: Arrives at 3, has shortest burst (1), starts at 8, completes at 9
+- **Process 2**: Has next shortest burst (2), starts at 9, completes at 11
+- **Process 1**: Has longest burst (4), starts at 11, completes at 15
+
+## Algorithm Details
+
+### How It Works
+
+1. At each scheduling point, find all processes that have arrived
+2. Among available processes, select the one with shortest CPU burst time
+3. Execute selected process to completion (non-preemptive)
+4. Repeat until all processes complete
+5. If no processes are available, CPU remains idle and time advances
+
+### Complexity
+
+- **Time Complexity**: O(n²) in worst case due to repeated filtering and sorting
+- **Space Complexity**: O(n) for storing process data and results
+
+### Characteristics
+
+- **Non-preemptive**: Once a process starts, it runs to completion
+- **Optimal**: Minimizes average waiting time among non-preemptive algorithms
+- **Starvation Risk**: Long processes may wait indefinitely if short processes keep arriving
+- **Requires Knowledge**: CPU burst time must be known in advance
+
+### Tie Breaking
+
+When multiple processes have the same shortest CPU time:
+- Priority is given to the process that arrived first
+- If arrival times are also equal, lower process ID is selected

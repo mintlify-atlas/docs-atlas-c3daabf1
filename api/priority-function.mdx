@@ -1,0 +1,147 @@
+---
+title: 'prioridad()'
+description: 'Non-preemptive Priority scheduling algorithm implementation'
+---
+
+## Function Signature
+
+```javascript
+function prioridad(llegada, cpu, prioridad)
+```
+
+## Description
+
+Implements a non-preemptive Priority scheduling algorithm. Processes are executed based on their priority values (lower number = higher priority). When a process starts execution, it runs to completion without interruption, even if a higher-priority process arrives during execution.
+
+## Parameters
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process. Each element represents when a process arrives in the system.
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process. Each element represents how long a process needs to execute.
+</ParamField>
+
+<ParamField path="prioridad" type="number[]" required>
+  Array of priority values for each process. **Lower values indicate higher priority** (e.g., priority 1 > priority 5).
+</ParamField>
+
+## Return Value
+
+Returns an object containing scheduling metrics:
+
+<ResponseField name="inicio" type="number[]">
+  Array of start times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="finalizacion" type="number[]">
+  Array of completion times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="espera" type="number[]">
+  Array of waiting times for each process. Calculated as: `turnaround_time - cpu_time`.
+</ResponseField>
+
+<ResponseField name="retorno" type="number[]">
+  Array of turnaround times for each process. Calculated as: `completion_time - arrival_time`. Represents total time from arrival to completion.
+</ResponseField>
+
+<ResponseField name="tiempoTotal" type="number">
+  Total time required to complete all processes (maximum completion time).
+</ResponseField>
+
+## Example Usage
+
+```javascript
+// Process arrival times
+const llegada = [0, 1, 2, 3];
+
+// CPU burst times
+const cpu = [4, 3, 5, 2];
+
+// Priority values (lower = higher priority)
+const prioridad = [2, 1, 3, 1];
+
+// Execute Priority scheduling algorithm
+const resultado = prioridad(llegada, cpu, prioridad);
+
+console.log('Start times:', resultado.inicio);
+console.log('Completion times:', resultado.finalizacion);
+console.log('Waiting times:', resultado.espera);
+console.log('Turnaround times:', resultado.retorno);
+console.log('Total time:', resultado.tiempoTotal);
+```
+
+## Sample Output
+
+```javascript
+{
+  inicio: [0, 4, 9, 7],
+  finalizacion: [4, 7, 14, 9],
+  espera: [0, 3, 7, 4],
+  retorno: [4, 6, 12, 6],
+  tiempoTotal: 14
+}
+```
+
+### Output Explanation
+
+- **Process 0**: Priority 2, arrives at 0, starts immediately (only available), completes at 4
+- **Process 1**: Priority 1, arrives at 1, starts at 4 (highest priority), completes at 7
+- **Process 3**: Priority 1, arrives at 3, starts at 7 (same priority as P1, but P1 arrived first), completes at 9
+- **Process 2**: Priority 3, arrives at 2, starts at 9 (lowest priority), completes at 14
+
+## Algorithm Details
+
+### How It Works
+
+1. At each scheduling point, find all processes that have arrived and not completed
+2. Sort available processes by priority (ascending)
+3. Select the highest priority process (lowest priority number)
+4. Execute selected process to completion (non-preemptive)
+5. If no processes are available, CPU remains idle and time advances
+6. Calculate metrics: turnaround, waiting, and response times
+
+### Complexity
+
+- **Time Complexity**: O(n²) due to repeated filtering and sorting
+- **Space Complexity**: O(n) for storing process data and results
+
+### Characteristics
+
+- **Non-preemptive**: Once a process starts, it completes without interruption
+- **Priority-based**: Higher priority processes execute first
+- **Starvation Risk**: Low-priority processes may wait indefinitely
+- **Deterministic**: Same inputs always produce same schedule
+
+### Tie Breaking Rules
+
+When multiple processes have the same priority:
+
+1. **Arrival time**: Process that arrived first gets priority
+2. **Process ID**: If arrival times are also equal, lower ID is selected
+
+```javascript
+// Sorting logic from implementation:
+disponibles.sort((a, b) => {
+  if (a.prioridad !== b.prioridad) {
+    return a.prioridad - b.prioridad;  // Sort by priority
+  }
+  if (a.llegada !== b.llegada) {
+    return a.llegada - b.llegada;       // Then by arrival
+  }
+  return a.id - b.id;                   // Finally by ID
+});
+```
+
+## Preemptive vs Non-preemptive
+
+This implementation is **non-preemptive**:
+- ✓ Process runs to completion once started
+- ✓ Simpler to implement with less overhead
+- ✗ Cannot interrupt for higher priority arrivals
+
+**Preemptive version** (not implemented):
+- Would interrupt running process if higher priority arrives
+- More responsive but increases context switching overhead

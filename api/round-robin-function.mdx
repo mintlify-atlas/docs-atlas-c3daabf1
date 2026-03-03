@@ -1,0 +1,133 @@
+---
+title: 'roundRobin()'
+description: 'Round Robin scheduling algorithm with time quantum'
+---
+
+## Function Signature
+
+```javascript
+function roundRobin(llegada, cpu, quantum)
+```
+
+## Description
+
+Implements the Round Robin scheduling algorithm with time quantum. Each process is allocated a fixed time slice (quantum) for execution. If a process doesn't complete within its quantum, it's moved to the end of the ready queue, allowing other processes to execute. This ensures fair CPU time distribution among all processes.
+
+## Parameters
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process. Each element represents when a process arrives in the system.
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process. Each element represents total time a process needs to execute.
+</ParamField>
+
+<ParamField path="quantum" type="number" required>
+  Time quantum (time slice) allocated to each process per execution cycle. Determines how long each process runs before switching.
+</ParamField>
+
+## Return Value
+
+Returns an object containing scheduling metrics:
+
+<ResponseField name="inicio" type="number[]">
+  Array of start times for each process (indexed by process ID). Records when process first began execution.
+</ResponseField>
+
+<ResponseField name="finalizacion" type="number[]">
+  Array of completion times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="espera" type="number[]">
+  Array of waiting times for each process. Calculated as: `turnaround_time - cpu_time`.
+</ResponseField>
+
+<ResponseField name="retorno" type="number[]">
+  Array of turnaround times for each process. Calculated as: `completion_time - arrival_time`. Represents total time from arrival to completion.
+</ResponseField>
+
+<ResponseField name="tiempoTotal" type="number">
+  Total time required to complete all processes (maximum completion time).
+</ResponseField>
+
+## Example Usage
+
+```javascript
+// Process arrival times
+const llegada = [0, 1, 2, 3];
+
+// CPU burst times
+const cpu = [5, 3, 8, 6];
+
+// Time quantum
+const quantum = 2;
+
+// Execute Round Robin algorithm
+const resultado = roundRobin(llegada, cpu, quantum);
+
+console.log('Start times:', resultado.inicio);
+console.log('Completion times:', resultado.finalizacion);
+console.log('Waiting times:', resultado.espera);
+console.log('Turnaround times:', resultado.retorno);
+console.log('Total time:', resultado.tiempoTotal);
+```
+
+## Sample Output
+
+```javascript
+{
+  inicio: [0, 2, 4, 6],
+  finalizacion: [19, 13, 22, 20],
+  espera: [14, 10, 14, 14],
+  retorno: [19, 12, 20, 17],
+  tiempoTotal: 22
+}
+```
+
+### Output Explanation
+
+With quantum = 2, execution proceeds as follows:
+
+- **Time 0-2**: Process 0 runs (remaining: 3)
+- **Time 2-4**: Process 1 runs (remaining: 1)
+- **Time 4-6**: Process 2 runs (remaining: 6)
+- **Time 6-8**: Process 3 runs (remaining: 4)
+- **Time 8-10**: Process 0 runs (remaining: 1)
+- **Time 10-12**: Process 1 runs (completes)
+- And so on...
+
+## Algorithm Details
+
+### How It Works
+
+1. Maintain a ready queue of processes
+2. Add newly arrived processes to the queue
+3. Take the first process from queue
+4. Execute it for one quantum or until completion (whichever is shorter)
+5. Check for new arrivals after each time unit during execution
+6. If process not complete, add it back to end of queue
+7. Repeat until all processes complete
+
+### Complexity
+
+- **Time Complexity**: O(n × t) where t is total execution time
+- **Space Complexity**: O(n) for process data and ready queue
+
+### Characteristics
+
+- **Preemptive**: Processes are interrupted after each quantum
+- **Fair**: All processes get equal CPU time slices
+- **Time-sharing**: Ideal for interactive systems
+- **Context Switching**: Frequent switches can add overhead
+- **Quantum Selection**: 
+  - Small quantum: More responsive but higher overhead
+  - Large quantum: Approaches FIFO behavior
+  - Typical range: 10-100 milliseconds in real systems
+
+### Queue Management
+
+The implementation carefully handles:
+- Adding processes as they arrive during execution
+- Preventing duplicate queue entries with `enCola` flag
+- Checking for arrivals after each time unit, not just at quantum boundaries

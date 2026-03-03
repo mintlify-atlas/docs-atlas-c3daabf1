@@ -1,0 +1,173 @@
+---
+title: 'mlfq()'
+description: 'Multi-Level Feedback Queue scheduling algorithm implementation'
+---
+
+## Function Signature
+
+```javascript
+function mlfq(llegada, cpu, quantum)
+```
+
+## Description
+
+Implements the MLFQ (Multi-Level Feedback Queue) scheduling algorithm. Processes move between multiple queues with different priority levels. New processes start in the highest-priority queue. If a process doesn't complete within its quantum, it moves to a lower-priority queue. Each queue has its own time quantum.
+
+## Parameters
+
+<ParamField path="llegada" type="number[]" required>
+  Array of arrival times for each process. Each element represents when a process arrives in the system.
+</ParamField>
+
+<ParamField path="cpu" type="number[]" required>
+  Array of CPU burst times for each process. Each element represents total time a process needs to execute.
+</ParamField>
+
+<ParamField path="quantum" type="number[]" required>
+  Array of time quantums for each queue level. `quantum[0]` is for highest-priority queue (level 0), `quantum[1]` for level 1, etc. The array length determines the number of queue levels.
+</ParamField>
+
+## Return Value
+
+Returns an object containing scheduling metrics:
+
+<ResponseField name="inicio" type="number[]">
+  Array of start times for each process (indexed by process ID). Records when process first began execution.
+</ResponseField>
+
+<ResponseField name="finalizacion" type="number[]">
+  Array of completion times for each process (indexed by process ID).
+</ResponseField>
+
+<ResponseField name="espera" type="number[]">
+  Array of waiting times for each process. Calculated as: `turnaround_time - cpu_time`.
+</ResponseField>
+
+<ResponseField name="retorno" type="number[]">
+  Array of turnaround times for each process. Calculated as: `completion_time - arrival_time`. Represents total time from arrival to completion.
+</ResponseField>
+
+<ResponseField name="tiempoTotal" type="number">
+  Total time required to complete all processes (maximum completion time).
+</ResponseField>
+
+## Example Usage
+
+```javascript
+// Process arrival times
+const llegada = [0, 1, 2];
+
+// CPU burst times
+const cpu = [10, 5, 8];
+
+// Quantum for each queue level [Q0, Q1, Q2]
+const quantum = [2, 4, 8];
+
+// Execute MLFQ algorithm
+const resultado = mlfq(llegada, cpu, quantum);
+
+console.log('Start times:', resultado.inicio);
+console.log('Completion times:', resultado.finalizacion);
+console.log('Waiting times:', resultado.espera);
+console.log('Turnaround times:', resultado.retorno);
+console.log('Total time:', resultado.tiempoTotal);
+```
+
+## Sample Output
+
+```javascript
+{
+  inicio: [0, 2, 4],
+  finalizacion: [23, 12, 20],
+  espera: [13, 6, 10],
+  retorno: [23, 11, 18],
+  tiempoTotal: 23
+}
+```
+
+### Output Explanation
+
+With 3 queue levels and quantums [2, 4, 8]:
+
+- **Process 0**: Starts in Q0, gets 2 units, demoted to Q1, gets 4 units, demoted to Q2, continues there
+- **Process 1**: Starts in Q0, interleaves with other processes based on queue priority
+- **Process 2**: Starts in Q0, moves down queues as needed
+
+Higher-level queues always execute before lower-level ones.
+
+## Algorithm Details
+
+### How It Works
+
+1. Create multiple ready queues (number = length of quantum array)
+2. New processes always enter queue 0 (highest priority)
+3. At each scheduling point:
+   - Find the highest-priority non-empty queue
+   - Take first process from that queue
+   - Execute for quantum[level] time or until completion
+4. If process completes, remove from system
+5. If process doesn't complete:
+   - Move to next lower queue (or stay at lowest)
+   - Process remains in lower priority queue
+6. Repeat until all processes complete
+
+### Queue Priority System
+
+```javascript
+// Queue 0 (highest priority) - shortest quantum
+// Queue 1 (medium priority)  - medium quantum  
+// Queue 2 (lowest priority)  - longest quantum
+// ...
+```
+
+Processes "age" by moving down queues, ensuring CPU-bound processes eventually get longer time slices.
+
+### Complexity
+
+- **Time Complexity**: O(n × t) where t is total execution time
+- **Space Complexity**: O(n + q) where q is number of queues
+
+### Characteristics
+
+- **Adaptive**: Automatically adjusts to process behavior
+- **Favors I/O-bound**: Short processes complete quickly in high-priority queues
+- **Prevents starvation**: All processes eventually execute (though low-priority ones wait longer)
+- **Dynamic priority**: Processes move between queues based on execution history
+- **Configurable**: Quantum array determines behavior
+
+### Queue Movement Rules
+
+```javascript
+// From implementation:
+if (!proceso.terminado) {
+  proceso.nivel = nivelActual < colas.length - 1 
+    ? nivelActual + 1  // Move down one level
+    : nivelActual;     // Stay at lowest level
+  colas[proceso.nivel].push(proceso);
+}
+```
+
+- Process uses full quantum → demoted to next lower queue
+- Process reaches lowest queue → stays there for remaining execution
+- Process completes → removed from all queues
+
+### Quantum Configuration Strategies
+
+**Increasing quantums** (recommended):
+```javascript
+const quantum = [2, 4, 8, 16];  // Each level doubles
+```
+- Short processes complete quickly
+- Long processes get efficient longer slices
+
+**Equal quantums**:
+```javascript
+const quantum = [4, 4, 4];  // All levels same
+```
+- Simpler but less adaptive
+
+**Custom tuning**:
+```javascript
+const quantum = [1, 3, 9, 27];  // Exponential growth
+```
+- Fine-tune for specific workload characteristics

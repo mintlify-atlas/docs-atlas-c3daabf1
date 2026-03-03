@@ -1,0 +1,133 @@
+---
+title: Introduction
+description: Interactive web-based simulator for classic CPU scheduling algorithms built with JavaScript and Tailwind CSS
+---
+
+# CPU Scheduling Algorithms Simulator
+
+An interactive frontend simulator that visualizes and analyzes classic CPU scheduling algorithms in real-time. Built entirely with Vanilla JavaScript and Tailwind CSS, this educational tool runs directly in your browser without requiring any backend infrastructure.
+
+<CardGroup cols={3}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get the simulator running in minutes
+  </Card>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/installation"
+  >
+    Local, Docker, or cloud deployment options
+  </Card>
+  <Card
+    title="Algorithms Overview"
+    icon="cpu"
+    href="/algorithms/overview"
+  >
+    Learn about the 5 supported scheduling algorithms
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Real-Time Visualization" icon="chart-line">
+    Watch processes move through the CPU and ready queue with live animated displays. See the Gantt chart build step-by-step as the simulation runs.
+  </Card>
+  
+  <Card title="5 Classic Algorithms" icon="brain">
+    Compare FIFO, SJF, Round Robin, Priority Scheduling, and Multi-Level Feedback Queue (MLFQ) side-by-side.
+  </Card>
+  
+  <Card title="Performance Metrics" icon="gauge">
+    Analyze waiting time, turnaround time, response time, and total execution time for each process and algorithm.
+  </Card>
+  
+  <Card title="Dynamic Process Input" icon="sliders">
+    Configure arrival times, CPU burst times, priorities, and quantum values for custom test scenarios.
+  </Card>
+  
+  <Card title="100% Frontend" icon="browser">
+    No backend required - everything runs in the browser. Perfect for offline use and educational environments.
+  </Card>
+  
+  <Card title="Responsive Design" icon="mobile">
+    Built with Tailwind CSS for a modern, responsive interface that works on any device.
+  </Card>
+</CardGroup>
+
+## Supported Algorithms
+
+The simulator implements five fundamental CPU scheduling algorithms:
+
+- **FIFO (First In, First Out)** - Processes execute in arrival order
+- **SJF (Shortest Job First)** - Shortest CPU burst executes first
+- **Round Robin** - Time-sliced execution with configurable quantum
+- **Priority Scheduling** - Higher priority processes execute first (non-preemptive)
+- **MLFQ (Multi-Level Feedback Queue)** - Multiple priority queues with quantum-based demotion
+
+<Info>
+All algorithms can be tested with the same input data, making it easy to compare their behavior and performance characteristics.
+</Info>
+
+## Educational Purpose
+
+This simulator was designed as an academic project to help students understand:
+
+- **Scheduling queues** - How processes wait for CPU time
+- **Arrival time** - When processes enter the system
+- **CPU burst** - How long processes need the CPU
+- **Preemption** - Interrupting running processes (Round Robin, MLFQ)
+- **Multi-level scheduling** - Managing multiple priority queues
+- **Performance comparison** - Evaluating algorithm efficiency
+
+The goal is to visualize and compare how different algorithms behave under identical conditions, making abstract operating system concepts concrete and interactive.
+
+## Technology Stack
+
+<CodeGroup>
+```text Frontend
+HTML5
+JavaScript (Vanilla)
+Tailwind CSS
+```
+
+```text Deployment
+Docker
+Nginx (static web server)
+Render (cloud hosting)
+```
+</CodeGroup>
+
+## Live Demo
+
+<Card
+  title="Try the Live Demo"
+  icon="globe"
+  href="https://planificacion-app-rcl8.onrender.com"
+>
+  Experience the simulator instantly without any installation. Deployed on Render and ready to use.
+</Card>
+
+<Note>
+The simulator requires only a modern web browser (Chrome, Edge, Firefox, or Safari). No Node.js, databases, or server infrastructure needed.
+</Note>
+
+## Next Steps
+
+<Steps>
+  <Step title="Get Started">
+    Follow the [Quick Start Guide](/quickstart) to run your first simulation
+  </Step>
+  
+  <Step title="Learn the Algorithms">
+    Understand how each [scheduling algorithm](/algorithms/overview) works
+  </Step>
+  
+  <Step title="Deploy Locally">
+    Set up the simulator on your machine with the [Installation Guide](/installation)
+  </Step>
+</Steps>

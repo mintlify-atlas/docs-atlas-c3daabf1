@@ -1,0 +1,427 @@
+---
+title: Installation
+description: Install and deploy the CPU Scheduling Simulator locally, with Docker, or access the cloud demo
+---
+
+# Installation Guide
+
+The CPU Scheduling Algorithms Simulator offers multiple deployment options to fit your needs. Choose from instant cloud access, local file execution, or containerized Docker deployment.
+
+## Requirements
+
+<CardGroup cols={2}>
+  <Card title="Minimal Requirements" icon="check">
+    - Modern web browser (Chrome, Edge, Firefox, or Safari)
+    - No Node.js installation needed
+    - No database required
+    - No backend server needed
+  </Card>
+  
+  <Card title="Optional Tools" icon="toolbox">
+    - Docker Desktop (for containerized deployment)
+    - Git (for cloning the repository)
+    - Web server (for custom hosting)
+  </Card>
+</CardGroup>
+
+<Info>
+This is a 100% frontend application. All computation happens in the browser, making installation incredibly simple.
+</Info>
+
+## Installation Methods
+
+<Tabs>
+  <Tab title="Cloud Demo (Instant)">
+    ### Option 1: Access the Live Demo
+    
+    The fastest way to use the simulator - no installation required!
+    
+    **Live URL**: [https://planificacion-app-rcl8.onrender.com](https://planificacion-app-rcl8.onrender.com)
+    
+    <Steps>
+      <Step title="Open Your Browser">
+        Launch any modern web browser on your device.
+      </Step>
+      
+      <Step title="Visit the Demo">
+        Navigate to: `https://planificacion-app-rcl8.onrender.com`
+      </Step>
+      
+      <Step title="Start Simulating">
+        The simulator loads instantly. Select an algorithm and begin!
+      </Step>
+    </Steps>
+    
+    <Tip>
+    **Best for**: Quick testing, demonstrations, and classroom use
+    </Tip>
+    
+    <Note>
+    The demo is hosted on Render's free tier. Initial load may take 30-60 seconds if the service was idle.
+    </Note>
+  </Tab>
+  
+  <Tab title="Local Files">
+    ### Option 2: Run Local HTML Files
+    
+    Run the simulator directly from your filesystem without any server.
+    
+    <Steps>
+      <Step title="Clone the Repository">
+        Download the project from GitHub:
+        
+        ```bash
+        git clone https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion.git
+        ```
+        
+        Or download the ZIP file from the repository and extract it.
+      </Step>
+      
+      <Step title="Navigate to the Project">
+        Open your file explorer and go to:
+        
+        ```text
+        AlgoritmosPlanificacion/FIFO/
+        ```
+      </Step>
+      
+      <Step title="Open index.html">
+        Double-click `index.html` to open it in your default browser.
+        
+        Or right-click and select **Open With** to choose a specific browser.
+      </Step>
+      
+      <Step title="Verify">
+        You should see the algorithm selection screen with five buttons:
+        - FIFO
+        - SJF
+        - Round Robin
+        - Prioridad
+        - MLFQ
+      </Step>
+    </Steps>
+    
+    <Tip>
+    **Best for**: Offline use, local development, and environments without internet access
+    </Tip>
+    
+    ### Project Structure
+    
+    ```text
+    AlgoritmosPlanificacion/
+    ├── FIFO/
+    │   ├── css/
+    │   │   └── styles.css          # Custom styling
+    │   ├── JS/
+    │   │   ├── algoritmos.js       # Algorithm implementations
+    │   │   ├── ui.js               # UI controls and visualization
+    │   └── index.html              # Main entry point
+    ├── Dockerfile                   # Container configuration
+    ├── README.md
+    └── .gitignore
+    ```
+    
+    <Warning>
+    Some browsers may restrict local file access. If you encounter CORS errors, use the Docker method or access via `http://localhost` with a local web server.
+    </Warning>
+  </Tab>
+  
+  <Tab title="Docker">
+    ### Option 3: Run with Docker
+    
+    Deploy the simulator in an isolated container for consistent, reproducible environments.
+    
+    <Steps>
+      <Step title="Install Docker">
+        Ensure Docker Desktop is installed on your system:
+        - [Docker for Windows](https://docs.docker.com/desktop/install/windows-install/)
+        - [Docker for Mac](https://docs.docker.com/desktop/install/mac-install/)
+        - [Docker for Linux](https://docs.docker.com/desktop/install/linux-install/)
+      </Step>
+      
+      <Step title="Clone the Repository">
+        ```bash
+        git clone https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion.git
+        cd AlgoritmosPlanificacion
+        ```
+      </Step>
+      
+      <Step title="Build the Docker Image">
+        Create the container image:
+        
+        ```bash
+        docker build -t algoritmos-planificacion .
+        ```
+        
+        This uses the included `Dockerfile`:
+        
+        ```dockerfile
+        FROM nginx:alpine
+        COPY . /usr/share/nginx/html
+        EXPOSE 80
+        ```
+        
+        The image is lightweight, based on Alpine Linux with Nginx serving static files.
+      </Step>
+      
+      <Step title="Run the Container">
+        Start the simulator on port 8080:
+        
+        ```bash
+        docker run -p 8080:80 algoritmos-planificacion
+        ```
+        
+        <Note>
+        The `-p 8080:80` flag maps your local port 8080 to the container's port 80.
+        </Note>
+      </Step>
+      
+      <Step title="Access the Simulator">
+        Open your browser and navigate to:
+        
+        ```text
+        http://localhost:8080
+        ```
+        
+        The simulator should load immediately.
+      </Step>
+    </Steps>
+    
+    <Tip>
+    **Best for**: Production deployments, academic evaluation, and consistent testing environments
+    </Tip>
+    
+    ### Docker Commands
+    
+    <CodeGroup>
+    ```bash Build Image
+    docker build -t algoritmos-planificacion .
+    ```
+    
+    ```bash Run Container
+    docker run -p 8080:80 algoritmos-planificacion
+    ```
+    
+    ```bash Run in Background
+    docker run -d -p 8080:80 algoritmos-planificacion
+    ```
+    
+    ```bash Stop Container
+    docker stop $(docker ps -q --filter ancestor=algoritmos-planificacion)
+    ```
+    
+    ```bash View Logs
+    docker logs $(docker ps -q --filter ancestor=algoritmos-planificacion)
+    ```
+    </CodeGroup>
+    
+    ### Custom Port
+    
+    To use a different port, modify the `-p` flag:
+    
+    ```bash
+    # Run on port 3000
+    docker run -p 3000:80 algoritmos-planificacion
+    
+    # Access at http://localhost:3000
+    ```
+  </Tab>
+</Tabs>
+
+## Verification Steps
+
+After installation, verify the simulator is working correctly:
+
+<Steps>
+  <Step title="Check Algorithm Selection">
+    You should see five colored buttons on the landing page:
+    - FIFO (blue)
+    - SJF (green)
+    - Round Robin (yellow/orange)
+    - Prioridad (red)
+    - MLFQ (dark red)
+  </Step>
+  
+  <Step title="Test Basic Simulation">
+    1. Click **FIFO**
+    2. Enter `2` for number of processes
+    3. Click **Continue**
+    4. Enter process data:
+       - Process 1: Arrival `0`, CPU `3`
+       - Process 2: Arrival `1`, CPU `2`
+    5. Click **Simular**
+  </Step>
+  
+  <Step title="Verify Results Display">
+    You should see:
+    - Results table with metrics for P1 and P2
+    - Total execution time: `5`
+    - Simulation controls (Iniciar, Pausar, Reiniciar, Volver al inicio)
+  </Step>
+  
+  <Step title="Test Animation">
+    1. Click **▶ Iniciar**
+    2. Watch the CPU box update
+    3. Observe the Gantt chart building
+    4. Verify animation completes without errors
+  </Step>
+</Steps>
+
+<Tip>
+If all steps complete successfully, your installation is working correctly!
+</Tip>
+
+## Deployment Options
+
+### Static Web Hosting
+
+Since the simulator is purely static files, you can deploy to any hosting service:
+
+<CardGroup cols={2}>
+  <Card title="Render" icon="cloud">
+    The official demo uses Render. Connect your GitHub repository and deploy automatically.
+  </Card>
+  
+  <Card title="Netlify" icon="globe">
+    Drag and drop the project folder for instant deployment with continuous updates.
+  </Card>
+  
+  <Card title="GitHub Pages" icon="github">
+    Free hosting for public repositories. Enable in repository settings.
+  </Card>
+  
+  <Card title="Vercel" icon="triangle">
+    Zero-config deployment with automatic HTTPS and global CDN.
+  </Card>
+</CardGroup>
+
+### Self-Hosted Server
+
+For custom infrastructure, use any web server:
+
+<CodeGroup>
+```bash Nginx
+# Copy files to nginx html directory
+sudo cp -r AlgoritmosPlanificacion/FIFO/* /usr/share/nginx/html/
+sudo systemctl restart nginx
+```
+
+```bash Apache
+# Copy files to apache html directory
+sudo cp -r AlgoritmosPlanificacion/FIFO/* /var/www/html/
+sudo systemctl restart apache2
+```
+
+```bash Python (Development)
+# Simple HTTP server for testing
+cd AlgoritmosPlanificacion/FIFO
+python3 -m http.server 8000
+# Access at http://localhost:8000
+```
+
+```bash Node.js (Development)
+# Using http-server package
+npx http-server AlgoritmosPlanificacion/FIFO -p 8000
+# Access at http://localhost:8000
+```
+</CodeGroup>
+
+## Browser Compatibility
+
+The simulator is tested and works on:
+
+<CardGroup cols={2}>
+  <Card title="Google Chrome" icon="chrome">
+    Version 90+ (recommended)
+  </Card>
+  
+  <Card title="Mozilla Firefox" icon="firefox">
+    Version 88+
+  </Card>
+  
+  <Card title="Microsoft Edge" icon="edge">
+    Version 90+ (Chromium-based)
+  </Card>
+  
+  <Card title="Safari" icon="safari">
+    Version 14+ (macOS/iOS)
+  </Card>
+</CardGroup>
+
+<Warning>
+Internet Explorer is not supported. The simulator uses modern JavaScript features (ES6+) and Tailwind CSS.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Docker build fails">
+    Ensure Docker Desktop is running and you have internet access to pull the `nginx:alpine` base image.
+    
+    Try:
+    ```bash
+    docker pull nginx:alpine
+    docker build -t algoritmos-planificacion .
+    ```
+  </Accordion>
+  
+  <Accordion title="Port 8080 already in use">
+    Another service is using port 8080. Use a different port:
+    
+    ```bash
+    docker run -p 9000:80 algoritmos-planificacion
+    # Access at http://localhost:9000
+    ```
+  </Accordion>
+  
+  <Accordion title="Tailwind CSS not loading">
+    The simulator uses Tailwind CDN. Ensure you have internet access or the styles won't load. For offline use, download Tailwind CSS locally and update the `<script>` tag in `index.html`.
+  </Accordion>
+  
+  <Accordion title="Local file CORS errors">
+    Some browsers restrict local file access. Solutions:
+    - Use Docker deployment
+    - Run a local web server (Python, Node, etc.)
+    - Access the cloud demo
+  </Accordion>
+  
+  <Accordion title="Cloud demo is slow">
+    Render's free tier spins down after inactivity. The first load after idle may take 30-60 seconds. Subsequent loads are instant.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start Guide"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Run your first simulation and learn the interface
+  </Card>
+  
+  <Card
+    title="Algorithm Overview"
+    icon="book"
+    href="/algorithms/overview"
+  >
+    Understand how each scheduling algorithm works
+  </Card>
+  
+  <Card
+    title="Usage Guide"
+    icon="play"
+    href="/usage/interface"
+  >
+    Advanced configuration and simulation techniques
+  </Card>
+  
+  <Card
+    title="GitHub Repository"
+    icon="github"
+    href="https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion"
+  >
+    View source code and contribute to the project
+  </Card>
+</CardGroup>

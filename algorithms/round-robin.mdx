@@ -1,0 +1,313 @@
+---
+title: Round Robin
+description: Understanding the Round Robin time-slicing scheduling algorithm
+---
+
+## Overview
+
+Round Robin (RR) is a preemptive CPU scheduling algorithm designed for time-sharing systems. Processes are executed in circular order, each receiving a fixed time slice called a "quantum" before moving to the back of the ready queue.
+
+<Info>
+Round Robin is a **preemptive** algorithm. A running process is interrupted when its quantum expires, even if it hasn't finished executing.
+</Info>
+
+## How It Works
+
+The Round Robin algorithm follows these steps:
+
+1. Maintain a FIFO ready queue of processes
+2. New arrivals are added to the end of the queue
+3. The CPU executes the process at the front for one quantum (or until completion)
+4. After the quantum expires:
+   - If the process is complete, remove it
+   - If not complete, move it to the back of the queue
+5. Check for new arrivals during execution and add them to the queue
+6. Repeat until all processes complete
+
+## Algorithm Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `llegada` | Array | Arrival times for each process |
+| `cpu` | Array | CPU burst times (total execution needed) |
+| `quantum` | Number | Time slice allocated per turn |
+
+<Note>
+The **quantum** value critically affects performance:
+- Too small: High context-switching overhead
+- Too large: Degrades to FIFO behavior
+- Typical values: 10-100 milliseconds in real systems
+</Note>
+
+## Implementation
+
+Here's the core Round Robin algorithm logic:
+
+```javascript
+function roundRobin(llegada, cpu, quantum) {
+  let procesos = [];
+
+  // Create process objects with remaining time tracking
+  for (let i = 0; i < llegada.length; i++) {
+    procesos.push({
+      id: i,
+      llegada: llegada[i],
+      cpu: cpu[i],
+      restante: cpu[i],  // Track remaining execution time
+      inicio: null,
+      finalizacion: null,
+      terminado: false,
+      enCola: false,
+    });
+  }
+
+  let cola = [];
+  let tiempoActual = 0;
+  let completados = 0;
+
+  while (completados < procesos.length) {
+    // Add newly arrived processes to queue
+    for (let i = 0; i < procesos.length; i++) {
+      if (
+        procesos[i].llegada <= tiempoActual &&
+        !procesos[i].terminado &&
+        !procesos[i].enCola
+      ) {
+        cola.push(procesos[i]);
+        procesos[i].enCola = true;
+      }
+    }
+
+    // If queue is empty, advance time
+    if (cola.length === 0) {
+      tiempoActual++;
+      continue;
+    }
+
+    // Get next process from queue
+    let proceso = cola.shift();
+    proceso.enCola = false;
+
+    // Record first execution start
+    if (proceso.inicio === null) {
+      proceso.inicio = tiempoActual;
+    }
+
+    // Execute for quantum or remaining time
+    let tiempoEjecucion = Math.min(quantum, proceso.restante);
+
+    for (let q = 0; q < tiempoEjecucion; q++) {
+      proceso.restante--;
+      tiempoActual++;
+
+      // Check for new arrivals during execution
+      for (let i = 0; i < procesos.length; i++) {
+        if (
+          procesos[i].llegada <= tiempoActual &&
+          !procesos[i].terminado &&
+          !procesos[i].enCola &&
+          procesos[i] !== proceso
+        ) {
+          cola.push(procesos[i]);
+          procesos[i].enCola = true;
+        }
+      }
+    }
+
+    // Check if process completed
+    if (proceso.restante === 0) {
+      proceso.terminado = true;
+      proceso.finalizacion = tiempoActual;
+      completados++;
+    } else {
+      // Put back in queue for another turn
+      cola.push(proceso);
+      proceso.enCola = true;
+    }
+  }
+
+  // Calculate metrics
+  let inicio = [];
+  let finalizacion = [];
+  let espera = [];
+  let retorno = [];
+
+  for (let proceso of procesos) {
+    inicio[proceso.id] = proceso.inicio;
+    finalizacion[proceso.id] = proceso.finalizacion;
+    retorno[proceso.id] = proceso.finalizacion - proceso.llegada;
+    espera[proceso.id] = retorno[proceso.id] - proceso.cpu;
+  }
+
+  return {
+    inicio,
+    finalizacion,
+    espera,
+    retorno,
+    tiempoTotal: Math.max(...finalizacion),
+  };
+}
+```
+
+## Example Walkthrough
+
+Let's simulate Round Robin with quantum = 2:
+
+| Process | Arrival Time | CPU Time |
+|---------|-------------|----------|
+| P0 | 0 | 5 |
+| P1 | 1 | 3 |
+| P2 | 2 | 1 |
+
+### Execution Timeline:
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11 12
+      [P0][P0][P1][P2][P0][P1][ ]
+       ^2  ^2  ^2  ^1  ^1  ^1
+```
+
+### Step-by-Step:
+
+1. **Time 0-2**: P0 executes (quantum=2)
+   - P0 remaining: 5 → 3
+   - P1 arrives at time 1, joins queue
+   - Queue after: [P1, P0]
+
+2. **Time 2-4**: P1 executes (quantum=2)
+   - P1 remaining: 3 → 1
+   - P2 arrives at time 2, joins queue
+   - Queue after: [P0, P2, P1]
+
+3. **Time 4-5**: P2 executes (quantum=2, but completes in 1)
+   - P2 remaining: 1 → 0 (completes!)
+   - Queue after: [P0, P1]
+
+4. **Time 5-6**: P0 executes (quantum=2, but only 1 remaining)
+   - P0 remaining: 3 → 2
+   - Queue after: [P1, P0]
+
+5. **Time 6-7**: P1 executes (quantum=2, but only 1 remaining)
+   - P1 remaining: 1 → 0 (completes!)
+   - Queue after: [P0]
+
+6. **Time 7-9**: P0 executes (quantum=2)
+   - P0 remaining: 2 → 0 (completes!)
+   - All done!
+
+### Results:
+
+| Process | Start | Finish | Waiting | Turnaround |
+|---------|-------|--------|---------|------------|
+| P0 | 0 | 9 | 4 | 9 |
+| P1 | 2 | 7 | 3 | 6 |
+| P2 | 4 | 5 | 2 | 3 |
+
+**Average Waiting Time**: (4 + 3 + 2) / 3 = 3.0
+
+**Average Turnaround Time**: (9 + 6 + 3) / 3 = 6.0
+
+## Key Characteristics
+
+### Advantages
+
+- **Fair CPU distribution** - Every process gets equal time slices
+- **Good response time** - All processes make regular progress
+- **No starvation** - Every process eventually executes
+- **Ideal for time-sharing** - Multiple users get fair access
+- **Predictable behavior** - Upper bound on waiting time
+
+### Disadvantages
+
+- **Context switching overhead** - Frequent switches consume CPU time
+- **Higher average turnaround time** than SJF
+- **Quantum selection is critical** and affects performance
+- **Not optimal** for any specific metric
+- **Poor for I/O-bound processes** that don't use full quantum
+
+<Warning>
+**Context Switching Overhead**: Each quantum expiration requires saving process state and loading the next process. If quantum is too small, more time is spent switching than executing!
+</Warning>
+
+## Quantum Selection
+
+Choosing the right quantum value is crucial:
+
+### Quantum Too Small (e.g., quantum = 1)
+
+- Pros: Excellent response time, very fair
+- Cons: Excessive context switching overhead
+- Result: CPU spends more time switching than working
+
+### Quantum Too Large (e.g., quantum = 100)
+
+- Pros: Minimal context switching
+- Cons: Degrades to FIFO behavior
+- Result: Long wait times, poor interactivity
+
+### Optimal Quantum
+
+- Should be 10-100x the context switch time
+- Typically 10-100 milliseconds in real systems
+- Should allow 80% of processes to complete in one quantum
+
+<Info>
+**Rule of Thumb**: Set quantum so that 80% of CPU bursts are shorter than the quantum. This minimizes context switches while maintaining responsiveness.
+</Info>
+
+## Performance Characteristics
+
+- **Time Complexity**: O(n × total_time / quantum) iterations
+- **Space Complexity**: O(n) for process queue
+- **Response Time**: Excellent - O(n × quantum) worst case
+- **Turnaround Time**: Average - depends on quantum
+- **Throughput**: Good for interactive workloads
+
+## Variant: Round Robin with Priorities
+
+Some systems combine Round Robin with priorities:
+
+```javascript
+// Processes can have priority levels
+// Each priority level has its own Round Robin queue
+// Higher priority queues execute first
+// Within each level, standard Round Robin applies
+```
+
+This is the basis for [MLFQ](/algorithms/mlfq).
+
+## Use Cases
+
+<Note>
+Round Robin works best for:
+- Time-sharing operating systems (Unix, Windows)
+- Interactive multi-user systems
+- Web servers handling multiple requests
+- Real-time systems with equal-priority tasks
+- Any scenario requiring fair resource distribution
+</Note>
+
+## Comparison with Other Algorithms
+
+| Metric | FIFO | SJF | Round Robin |
+|--------|------|-----|-------------|
+| Fairness | Fair (arrival) | Unfair | Very Fair |
+| Response Time | Poor | Poor | Excellent |
+| Avg Waiting Time | Medium | Optimal | Medium |
+| Starvation | No | Yes | No |
+| Overhead | None | None | High (context switch) |
+
+## Try It Out
+
+Use the simulator to experiment with Round Robin:
+
+1. Try different quantum values (1, 2, 5, 10)
+2. Observe how small quantum increases fairness but also total time
+3. Compare with FIFO using the same processes
+4. Test with many short processes vs. few long processes
+
+## Related Algorithms
+
+- [FIFO](/algorithms/fifo) - What RR becomes with infinite quantum
+- [MLFQ](/algorithms/mlfq) - Multi-level version with varying quantum
+- [Priority Scheduling](/algorithms/priority) - Can be combined with RR per priority level

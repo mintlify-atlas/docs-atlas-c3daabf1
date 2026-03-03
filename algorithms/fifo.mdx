@@ -1,0 +1,173 @@
+---
+title: FIFO (First In First Out)
+description: Understanding the FIFO scheduling algorithm implementation
+---
+
+## Overview
+
+FIFO (First In First Out), also known as FCFS (First Come First Served), is the simplest CPU scheduling algorithm. Processes are executed in the exact order they arrive, like a queue at a service counter.
+
+<Info>
+FIFO is a **non-preemptive** algorithm. Once a process starts execution, it runs to completion without interruption.
+</Info>
+
+## How It Works
+
+The FIFO algorithm follows these steps:
+
+1. Sort all processes by their arrival time
+2. Execute processes in arrival order
+3. If the CPU is idle when a process arrives, start immediately
+4. If the CPU is busy, the process waits in queue
+5. Each process runs to completion before the next begins
+
+## Algorithm Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `llegada` | Array | Arrival times for each process |
+| `cpu` | Array | CPU burst times (execution duration) |
+
+## Implementation
+
+Here's the core FIFO algorithm logic:
+
+```javascript
+function fifo(llegada, cpu) {
+  let procesos = [];
+
+  // Create process objects
+  for (let i = 0; i < llegada.length; i++) {
+    procesos.push({
+      id: i,
+      llegada: llegada[i],
+      cpu: cpu[i],
+    });
+  }
+
+  // Sort by arrival time
+  procesos.sort((a, b) => a.llegada - b.llegada);
+
+  let inicio = [];
+  let finalizacion = [];
+  let espera = [];
+  let retorno = [];
+  let tiempo_actual = 0;
+
+  // Execute in FIFO order
+  for (let i = 0; i < procesos.length; i++) {
+    // If CPU is idle, jump to next arrival
+    if (tiempo_actual < procesos[i].llegada) {
+      tiempo_actual = procesos[i].llegada;
+    }
+
+    let start = tiempo_actual;
+    let end = start + procesos[i].cpu;
+
+    inicio[procesos[i].id] = start;
+    finalizacion[procesos[i].id] = end;
+    espera[procesos[i].id] = start - procesos[i].llegada;
+    retorno[procesos[i].id] = end - procesos[i].llegada;
+
+    tiempo_actual = end;
+  }
+
+  return {
+    inicio,
+    finalizacion,
+    espera,
+    retorno,
+    tiempoTotal: Math.max(...finalizacion),
+  };
+}
+```
+
+## Example Walkthrough
+
+Let's simulate FIFO with three processes:
+
+| Process | Arrival Time | CPU Time |
+|---------|-------------|----------|
+| P0 | 0 | 5 |
+| P1 | 2 | 3 |
+| P2 | 4 | 8 |
+
+### Execution Timeline:
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
+      [---- P0 ----][- P1 -][------- P2 --------]
+```
+
+### Step-by-Step:
+
+1. **Time 0**: P0 arrives and starts immediately
+2. **Time 2**: P1 arrives but waits (P0 is running)
+3. **Time 4**: P2 arrives but waits (P0 is still running)
+4. **Time 5**: P0 completes, P1 starts (first in queue)
+5. **Time 8**: P1 completes, P2 starts
+6. **Time 16**: P2 completes, all done
+
+### Results:
+
+| Process | Start | Finish | Waiting | Turnaround |
+|---------|-------|--------|---------|------------|
+| P0 | 0 | 5 | 0 | 5 |
+| P1 | 5 | 8 | 3 | 6 |
+| P2 | 8 | 16 | 4 | 12 |
+
+**Average Waiting Time**: (0 + 3 + 4) / 3 = 2.33
+
+**Average Turnaround Time**: (5 + 6 + 12) / 3 = 7.67
+
+## Key Characteristics
+
+### Advantages
+
+- Simple to understand and implement
+- Fair in terms of arrival order
+- No starvation - every process eventually executes
+- Minimal overhead
+
+### Disadvantages
+
+- **Convoy Effect**: Short processes wait for long processes
+- Poor average waiting time if long processes arrive first
+- Not optimal for interactive systems
+- Cannot prioritize important processes
+
+<Warning>
+The "convoy effect" occurs when short processes get stuck waiting behind a long process, significantly increasing average waiting time.
+</Warning>
+
+## Performance Characteristics
+
+- **Time Complexity**: O(n log n) for sorting + O(n) for execution = O(n log n)
+- **Space Complexity**: O(n) for storing process data
+- **Throughput**: Depends on process lengths, not optimized
+- **Response Time**: Can be poor for processes arriving late
+
+## Use Cases
+
+<Note>
+FIFO works best for:
+- Batch processing systems
+- Print queue management
+- Task scheduling where order matters
+- Simple embedded systems
+- Scenarios where all processes have similar execution times
+</Note>
+
+## Try It Out
+
+Use the simulator to experiment with FIFO:
+
+1. Enter different arrival times and CPU burst times
+2. Observe how the convoy effect occurs with mixed process lengths
+3. Compare FIFO results with other algorithms like SJF or Round Robin
+
+## Related Algorithms
+
+- [SJF](/algorithms/sjf) - Optimizes waiting time by prioritizing shortest jobs
+- [Round Robin](/algorithms/round-robin) - Adds time-slicing to ensure fairness
+- [Priority Scheduling](/algorithms/priority) - Allows explicit priority control

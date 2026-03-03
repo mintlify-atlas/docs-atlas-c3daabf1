@@ -1,0 +1,197 @@
+---
+title: 'Cloud Deployment'
+description: 'Access the CPU Scheduling Algorithms Simulator hosted in the cloud'
+icon: 'cloud'
+---
+
+## Overview
+
+The CPU Scheduling Algorithms Simulator is deployed to the cloud for instant access without any local setup. This is the fastest way to start using the simulator.
+
+## Live Demo
+
+Access the production deployment instantly:
+
+<Card title="Live Application" icon="globe" href="https://planificacion-app-rcl8.onrender.com">
+  https://planificacion-app-rcl8.onrender.com
+</Card>
+
+The application is hosted on [Render](https://render.com), providing reliable and fast access from anywhere in the world.
+
+## Benefits of Cloud Deployment
+
+<CardGroup cols={2}>
+  <Card title="Zero Setup" icon="bolt">
+    Start using the simulator immediately - no installation required
+  </Card>
+  
+  <Card title="Always Updated" icon="arrows-rotate">
+    Access the latest version without manual updates
+  </Card>
+  
+  <Card title="Cross-Platform" icon="desktop">
+    Works on any device with a web browser
+  </Card>
+  
+  <Card title="Share Easily" icon="share-nodes">
+    Send the URL to colleagues or students
+  </Card>
+</CardGroup>
+
+## Deployment Platform: Render
+
+The application is deployed on Render, a modern cloud platform that provides:
+
+- **Automatic deployments** from the GitHub repository
+- **Global CDN** for fast access worldwide
+- **HTTPS encryption** for secure connections
+- **99.9% uptime** for reliability
+- **Free hosting** for static sites
+
+<Note>
+  The Render deployment uses the same Nginx-based Docker container as the local Docker deployment, ensuring consistency across environments.
+</Note>
+
+## Alternative Cloud Platforms
+
+Since this is a static web application, you can deploy it to various cloud platforms:
+
+<CodeGroup>
+
+```bash Netlify
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Deploy from project directory
+cd AlgoritmosPlanificacion
+netlify deploy --dir=. --prod
+```
+
+```bash Vercel
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy from project directory
+cd AlgoritmosPlanificacion
+vercel --prod
+```
+
+```bash GitHub Pages
+# Enable GitHub Pages in repository settings
+# Set source to main branch / root
+# Access at: https://username.github.io/AlgoritmosPlanificacion
+```
+
+```bash Render (Docker)
+# Create render.yaml in project root:
+services:
+  - type: web
+    name: cpu-scheduler
+    env: docker
+    plan: free
+```
+
+</CodeGroup>
+
+## Deploying Your Own Instance
+
+If you want to deploy your own instance to the cloud:
+
+<Steps>
+  <Step title="Fork the repository">
+    Fork the [GitHub repository](https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion) to your own account.
+  </Step>
+
+  <Step title="Choose a platform">
+    Select a cloud platform:
+    - **Render** - Docker support, free tier available
+    - **Netlify** - Simple drag-and-drop deployment
+    - **Vercel** - Optimized for static sites
+    - **GitHub Pages** - Free for public repositories
+  </Step>
+
+  <Step title="Connect repository">
+    Link your forked repository to the cloud platform:
+    
+    - For Render: Create new "Static Site" or "Web Service" (Docker)
+    - For Netlify/Vercel: Import project from Git
+    - For GitHub Pages: Enable in repository settings
+  </Step>
+
+  <Step title="Configure deployment">
+    Platform-specific configuration:
+    
+    **Render (Docker)**:
+    - Environment: Docker
+    - No build command needed
+    - Auto-deploy enabled
+    
+    **Netlify/Vercel**:
+    - Publish directory: `.` (root)
+    - No build command needed
+    - Auto-deploy enabled
+    
+    **GitHub Pages**:
+    - Source: main branch / root
+    - No configuration needed
+  </Step>
+
+  <Step title="Deploy">
+    Trigger the deployment:
+    - Most platforms auto-deploy on commit
+    - Or use manual deployment buttons
+    - Wait for deployment to complete (usually < 1 minute)
+  </Step>
+</Steps>
+
+## Platform Comparison
+
+| Platform | Free Tier | HTTPS | Custom Domain | Docker Support |
+|----------|-----------|-------|---------------|----------------|
+| **Render** | ✅ Yes | ✅ Yes | ✅ Yes | ✅ Yes |
+| **Netlify** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
+| **Vercel** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
+| **GitHub Pages** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
+
+## Performance Considerations
+
+<AccordionGroup>
+  <Accordion title="First load time">
+    Free tier deployments on platforms like Render may "spin down" after periods of inactivity. The first request after inactivity may take 30-60 seconds to wake up the service.
+  </Accordion>
+  
+  <Accordion title="Geographic distribution">
+    For optimal global performance, consider platforms with CDN support:
+    - Netlify: Global CDN included
+    - Vercel: Global edge network
+    - Render: CDN available on paid plans
+  </Accordion>
+  
+  <Accordion title="Static vs Docker">
+    Since this is a static application, deploying as static files (Netlify/Vercel) is typically faster and cheaper than Docker deployments. However, Docker ensures consistency with local development.
+  </Accordion>
+</AccordionGroup>
+
+## Monitoring and Maintenance
+
+<CardGroup cols={2}>
+  <Card title="Uptime Monitoring" icon="heart-pulse">
+    Use services like UptimeRobot or Render's built-in monitoring
+  </Card>
+  
+  <Card title="Analytics" icon="chart-line">
+    Add Google Analytics or Plausible for usage tracking
+  </Card>
+  
+  <Card title="Auto-Updates" icon="rotate">
+    Enable auto-deploy to keep the live site in sync with your repository
+  </Card>
+  
+  <Card title="Error Tracking" icon="bug">
+    Use browser console or Sentry for error monitoring
+  </Card>
+</CardGroup>
+
+<Tip>
+  For academic or evaluation purposes, the existing live demo at [planificacion-app-rcl8.onrender.com](https://planificacion-app-rcl8.onrender.com) is ready to use immediately without any setup!
+</Tip>

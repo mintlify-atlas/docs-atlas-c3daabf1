@@ -1,80 +1,244 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get the CPU Scheduling Simulator running in minutes and execute your first simulation
 ---
 
-## Get started in three steps
+# Quick Start Guide
 
-Get your documentation site running locally and make your first customization.
+Get started with the CPU Scheduling Algorithms Simulator in just a few steps. This guide will walk you through accessing the simulator and running your first algorithm simulation.
 
-### Step 1: Set up your local environment
+## Getting Started
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<Steps>
+  <Step title="Access the Simulator">
+    The fastest way to start is using the live demo:
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    Visit [https://planificacion-app-rcl8.onrender.com](https://planificacion-app-rcl8.onrender.com) in your browser.
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+    <Note>
+    No installation required! The simulator runs entirely in your browser.
+    </Note>
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    Alternatively, you can:
+    - Open the local HTML file: `AlgoritmosPlanificacion/FIFO/index.html`
+    - Run with Docker: `docker run -p 8080:80 algoritmos-planificacion`
+    
+    See the [Installation Guide](/installation) for detailed setup instructions.
+  </Step>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+  <Step title="Select an Algorithm">
+    On the landing page, you'll see five algorithm options:
+    
+    - **FIFO** - First In, First Out (simplest)
+    - **SJF** - Shortest Job First
+    - **Round Robin** - Time-sliced scheduling
+    - **Priority** - Priority-based scheduling
+    - **MLFQ** - Multi-Level Feedback Queue
+    
+    Click any button to select your algorithm. For your first simulation, try **FIFO** as it's the most straightforward.
+  </Step>
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+  <Step title="Enter Process Data">
+    After selecting an algorithm, you'll configure the simulation:
+    
+    1. **Enter the number of processes** (e.g., `3`)
+    2. Click **Continue**
+    3. For each process, enter:
+       - **Arrival Time** - When the process enters the system
+       - **CPU Time** - How long the process needs the CPU
+       - **Priority** (Priority algorithm only) - Lower number = higher priority
+       - **Quantum** (Round Robin/MLFQ only) - Time slice per execution
+    
+    <Info>
+    For Round Robin, enter a single quantum value (e.g., `2`).
+    
+    For MLFQ, enter comma-separated quantum values for each priority level (e.g., `3,5,7`).
+    </Info>
+  </Step>
 
-### Step 3: Go live
+  <Step title="Run the Simulation">
+    Click the **Simular** button to calculate results.
+    
+    You'll immediately see:
+    - Process metrics (arrival, start, finish, waiting, and turnaround times)
+    - Total execution time
+    - Real-time simulation controls
+  </Step>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+  <Step title="View the Visualization">
+    Control the real-time animation with these buttons:
+    
+    - **▶ Iniciar** - Start the step-by-step animation
+    - **⏸ Pausar** - Pause the simulation
+    - **🔄 Reiniciar** - Reset the animation to the beginning
+    - **⬅ Volver al inicio** - Return to algorithm selection
+    
+    Watch three visualization components update in real-time:
+    
+    1. **CPU Box** - Shows which process is currently executing
+    2. **Ready Queue** - Displays processes waiting for CPU time
+    3. **Gantt Chart Timeline** - Builds the execution timeline block by block
+  </Step>
+</Steps>
 
-## Next steps
+## Example Simulation
 
-Now that you have your docs running, explore these key features:
+Let's run a complete FIFO simulation with three processes:
+
+### Input Configuration
+
+```text
+Algorithm: FIFO
+Number of processes: 3
+
+Process 1:
+  Arrival: 0
+  CPU: 5
+
+Process 2:
+  Arrival: 2
+  CPU: 3
+
+Process 3:
+  Arrival: 4
+  CPU: 2
+```
+
+### Expected Results
+
+After clicking **Simular**, you'll see:
+
+```text
+P1 | Llegada: 0 | Inicio: 0 | Fin: 5 | Espera: 0 | Retorno: 5
+P2 | Llegada: 2 | Inicio: 5 | Fin: 8 | Espera: 3 | Retorno: 6
+P3 | Llegada: 4 | Inicio: 8 | Fin: 10 | Espera: 4 | Retorno: 6
+
+Tiempo total: 10
+```
+
+### Understanding the Metrics
+
+- **Llegada (Arrival)** - When the process entered the system
+- **Inicio (Start)** - When the process began executing
+- **Fin (Finish)** - When the process completed
+- **Espera (Wait)** - Time spent waiting in the ready queue
+- **Retorno (Turnaround)** - Total time from arrival to completion
+
+<Tip>
+**Wait Time** = Start Time - Arrival Time
+
+**Turnaround Time** = Finish Time - Arrival Time
+</Tip>
+
+## Visualization Interface
+
+During the animated simulation, you'll see:
+
+### CPU Display
+A gradient purple box showing the currently executing process (`P1`, `P2`, etc.) or `Idle` when no process is running.
+
+### Ready Queue
+Gray boxes representing processes waiting for CPU time. Processes appear in queue order based on the algorithm's scheduling rules.
+
+### Gantt Chart Timeline
+Indigo blocks building from left to right, each representing one time unit of execution. Hover over blocks to see them scale up.
+
+<Warning>
+The animation runs at 500ms per time unit. For long simulations, use the **Pausar** button to examine specific moments.
+</Warning>
+
+## Comparing Algorithms
+
+<Steps>
+  <Step title="Record Results">
+    After running a simulation, note the total execution time and average waiting time for your processes.
+  </Step>
+  
+  <Step title="Return to Start">
+    Click **⬅ Volver al inicio** to return to algorithm selection.
+  </Step>
+  
+  <Step title="Try Another Algorithm">
+    Select a different algorithm (e.g., **SJF**) and enter **the exact same process data**.
+  </Step>
+  
+  <Step title="Compare Performance">
+    Observe how different algorithms produce different waiting times, execution orders, and efficiency.
+  </Step>
+</Steps>
+
+<Info>
+For meaningful comparison, always use identical process configurations across algorithms. This isolates the impact of the scheduling strategy.
+</Info>
+
+## Round Robin Example
+
+Round Robin adds time-slicing behavior:
+
+```text
+Algorithm: Round Robin
+Quantum: 2
+Number of processes: 3
+
+Process 1: Arrival: 0, CPU: 5
+Process 2: Arrival: 1, CPU: 4
+Process 3: Arrival: 2, CPU: 2
+```
+
+With quantum = 2, each process executes for a maximum of 2 time units before moving to the back of the queue. Watch the CPU box and ready queue to see processes rotating through execution.
+
+## Next Steps
 
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card
+    title="Installation Guide"
+    icon="download"
+    href="/installation"
+  >
+    Set up the simulator locally with Docker or static files
+  </Card>
+  
+  <Card
+    title="Algorithm Details"
+    icon="book"
+    href="/algorithms/overview"
+  >
+    Learn how each scheduling algorithm works internally
+  </Card>
+  
+  <Card
+    title="Usage Guide"
+    icon="circle-play"
+    href="/usage/interface"
+  >
+    Advanced configuration and simulation techniques
+  </Card>
+  
+  <Card
+    title="Interpreting Results"
+    icon="chart-bar"
+    href="/usage/interpreting-results"
+  >
+    Interpret metrics and compare algorithm efficiency
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The simulator doesn't load">
+    Ensure you're using a modern browser (Chrome, Edge, Firefox, or Safari). The simulator requires JavaScript and may not work in older browsers.
+  </Accordion>
+  
+  <Accordion title="Animation doesn't start">
+    Click the **▶ Iniciar** button after seeing the results table. If the simulation already ran, click **🔄 Reiniciar** then **▶ Iniciar**.
+  </Accordion>
+  
+  <Accordion title="Invalid process input error">
+    Ensure all fields contain valid positive integers. Arrival and CPU times must be numbers greater than or equal to 0.
+  </Accordion>
+  
+  <Accordion title="MLFQ quantum format">
+    For MLFQ, enter comma-separated integers like `3,5,7` (no spaces). Each number represents the quantum for one priority level.
+  </Accordion>
+</AccordionGroup>

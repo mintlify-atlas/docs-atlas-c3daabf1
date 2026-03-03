@@ -1,0 +1,449 @@
+---
+title: MLFQ (Multi-Level Feedback Queue)
+description: Understanding the Multi-Level Feedback Queue scheduling algorithm
+---
+
+## Overview
+
+MLFQ (Multi-Level Feedback Queue) is an advanced CPU scheduling algorithm that uses multiple priority queues with different time quantum values. Processes dynamically move between queues based on their behavior, automatically adjusting priorities to balance interactive responsiveness with CPU-intensive throughput.
+
+<Info>
+MLFQ is a **preemptive** algorithm with **dynamic priority adjustment**. Processes can move between priority levels based on their execution patterns.
+</Info>
+
+## How It Works
+
+The MLFQ algorithm follows these steps:
+
+1. Maintain multiple ready queues, each with a different priority level
+2. Each queue has its own time quantum (typically increasing at lower priorities)
+3. New processes start in the highest-priority queue (queue 0)
+4. Execute processes from the highest-priority non-empty queue
+5. When a process uses its full quantum without completing:
+   - Move it to the next lower-priority queue (demotion)
+6. When a process completes or yields before quantum expires:
+   - It stays at the current priority (or can be promoted in some variants)
+7. Always check higher-priority queues before lower ones
+
+<Note>
+MLFQ is also called **Multi-Level Feedback Queue Scheduling** because processes get feedback based on their behavior and move between levels accordingly.
+</Note>
+
+## Algorithm Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `llegada` | Array | Arrival times for each process |
+| `cpu` | Array | CPU burst times (total execution needed) |
+| `quantum` | Array | Time quantum for each priority level |
+
+### Quantum Array Structure
+
+The `quantum` array defines the behavior of each priority level:
+
+```javascript
+// Example: 3-level MLFQ
+quantum = [2, 4, 8]
+//         Q0  Q1  Q2
+//         ↑   ↑   ↑
+//      High  Med  Low priority
+```
+
+- **Queue 0**: Highest priority, smallest quantum (most responsive)
+- **Queue N**: Lowest priority, largest quantum (most efficient)
+
+## Implementation
+
+Here's the core MLFQ algorithm logic:
+
+```javascript
+function mlfq(llegada, cpu, quantum) {
+  // Create processes with level tracking
+  let procesos = [];
+  for (let i = 0; i < llegada.length; i++) {
+    procesos.push({
+      id: i,
+      llegada: llegada[i],
+      cpu: cpu[i],
+      restante: cpu[i],
+      inicio: null,
+      finalizacion: null,
+      terminado: false,
+      enCola: false,
+      nivel: 0,  // Start at highest priority
+    });
+  }
+
+  // Create dynamic queues for each level
+  let colas = [];
+  for (let i = 0; i < quantum.length; i++) {
+    colas.push([]);
+  }
+
+  let tiempoActual = 0;
+  let completados = 0;
+
+  while (completados < procesos.length) {
+    // Add new arrivals to highest-priority queue (queue 0)
+    for (let proceso of procesos) {
+      if (
+        proceso.llegada <= tiempoActual &&
+        !proceso.terminado &&
+        !proceso.enCola
+      ) {
+        colas[0].push(proceso);
+        proceso.enCola = true;
+      }
+    }
+
+    // Find highest-priority non-empty queue
+    let nivelActual = -1;
+    for (let i = 0; i < colas.length; i++) {
+      if (colas[i].length > 0) {
+        nivelActual = i;
+        break;
+      }
+    }
+
+    // If all queues empty, advance time
+    if (nivelActual === -1) {
+      tiempoActual++;
+      continue;
+    }
+
+    // Execute process from highest-priority queue
+    let proceso = colas[nivelActual].shift();
+    proceso.enCola = false;
+
+    // Record first execution start
+    if (proceso.inicio === null) {
+      proceso.inicio = tiempoActual;
+    }
+
+    // Determine execution time for this quantum
+    let quantumActual = quantum[nivelActual];
+    let tiempoEjecucion = Math.min(quantumActual, proceso.restante);
+
+    tiempoActual += tiempoEjecucion;
+    proceso.restante -= tiempoEjecucion;
+
+    // Check if process completed
+    if (proceso.restante === 0) {
+      proceso.terminado = true;
+      proceso.finalizacion = tiempoActual;
+      completados++;
+    }
+
+    // If not completed, demote to lower-priority queue
+    if (!proceso.terminado) {
+      // Move down one level (or stay at lowest)
+      proceso.nivel =
+        nivelActual < colas.length - 1 ? nivelActual + 1 : nivelActual;
+      colas[proceso.nivel].push(proceso);
+      proceso.enCola = true;
+    }
+  }
+
+  // Calculate metrics
+  for (let proceso of procesos) {
+    proceso.retorno = proceso.finalizacion - proceso.llegada;
+    proceso.espera = proceso.retorno - proceso.cpu;
+    proceso.respuesta = proceso.inicio - proceso.llegada;
+  }
+
+  // Format results
+  let inicio = [];
+  let finalizacion = [];
+  let espera = [];
+  let retorno = [];
+
+  for (let proceso of procesos) {
+    inicio[proceso.id] = proceso.inicio;
+    finalizacion[proceso.id] = proceso.finalizacion;
+    retorno[proceso.id] = proceso.retorno;
+    espera[proceso.id] = proceso.espera;
+  }
+
+  return {
+    inicio,
+    finalizacion,
+    espera,
+    retorno,
+    tiempoTotal: Math.max(...finalizacion),
+  };
+}
+```
+
+## Example Walkthrough
+
+Let's simulate MLFQ with quantum = [2, 4]:
+
+| Process | Arrival Time | CPU Time |
+|---------|-------------|----------|
+| P0 | 0 | 7 |
+| P1 | 1 | 4 |
+| P2 | 2 | 1 |
+
+### Queue Structure:
+
+- **Queue 0**: Quantum = 2 (high priority, responsive)
+- **Queue 1**: Quantum = 4 (low priority, efficient)
+
+### Execution Timeline:
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16
+      [P0][P0][P1][P1][P2][P0][ P0  ][P1][ P1  ]
+       Q0  Q0  Q0  Q0  Q0  Q1   Q1   Q1   Q1
+```
+
+### Step-by-Step:
+
+1. **Time 0-2**: P0 starts in Q0, quantum=2
+   - P0 remaining: 7 → 5
+   - P0 demoted to Q1 (didn't finish)
+   - P1 arrives, joins Q0
+
+2. **Time 2-4**: P1 in Q0, quantum=2
+   - P1 remaining: 4 → 2
+   - P1 demoted to Q1
+   - P2 arrives, joins Q0
+
+3. **Time 4-5**: P2 in Q0, quantum=2 (completes in 1)
+   - P2 remaining: 1 → 0 (completes!)
+   - P2 stays in Q0 (but already done)
+
+4. **Time 5-9**: Q0 empty, P0 runs in Q1, quantum=4
+   - P0 remaining: 5 → 1
+   - P0 stays in Q1 (at lowest level)
+
+5. **Time 9-11**: P1 in Q1, quantum=4 (completes in 2)
+   - P1 remaining: 2 → 0 (completes!)
+
+6. **Time 11-12**: P0 finishes in Q1
+   - P0 remaining: 1 → 0 (completes!)
+
+### Results:
+
+| Process | Start | Finish | Waiting | Turnaround | Path |
+|---------|-------|--------|---------|------------|------|
+| P0 | 0 | 12 | 5 | 12 | Q0→Q1→Q1 |
+| P1 | 2 | 11 | 5 | 10 | Q0→Q1 |
+| P2 | 4 | 5 | 2 | 3 | Q0 |
+
+**Average Waiting Time**: (5 + 5 + 2) / 3 = 4.0
+
+<Note>
+P2 (shortest process) completed quickly without demotion. P0 and P1 (longer processes) were demoted to lower-priority queues, preventing them from monopolizing the CPU.
+</Note>
+
+## Key Characteristics
+
+### Advantages
+
+- **Automatic priority adjustment** - No manual priority assignment needed
+- **Excellent for mixed workloads** - Handles interactive + CPU-intensive
+- **Responsive to short processes** - They stay in high-priority queues
+- **No starvation** - Even low-priority processes eventually run
+- **Adaptive behavior** - Self-optimizing based on process patterns
+- **Good average response time** - Balances fairness and efficiency
+
+### Disadvantages
+
+- **Complex implementation** - More sophisticated than simple algorithms
+- **Parameter tuning required** - Quantum values affect performance
+- **Higher overhead** - Managing multiple queues and level changes
+- **Can penalize CPU-intensive tasks** - They get demoted repeatedly
+- **Gaming possible** - Processes can manipulate the system
+
+<Warning>
+**Gaming the System**: A process could yield CPU just before quantum expires to avoid demotion. Systems prevent this using rules like "if total CPU time exceeds threshold, demote anyway."
+</Warning>
+
+## Design Principles
+
+MLFQ is built on key principles:
+
+### Rule 1: Priority Ordering
+
+> If Priority(A) > Priority(B), then A runs (B doesn't)
+
+Higher-priority queues are always checked first.
+
+### Rule 2: Equal Priority
+
+> If Priority(A) = Priority(B), then A and B run in Round Robin
+
+Within each queue, use Round Robin scheduling.
+
+### Rule 3: New Arrivals Start High
+
+> When a process arrives, place it in the highest-priority queue
+
+Give every process a chance to prove it's short/interactive.
+
+### Rule 4: Demotion After Quantum
+
+> If a process uses its entire quantum, demote it to the next lower queue
+
+CPU-intensive processes move to lower priorities.
+
+### Rule 5: Stay if Yielding
+
+> If a process yields before quantum expires, it stays at current priority
+
+I/O-bound and interactive processes maintain high priority.
+
+## Quantum Configuration Strategies
+
+### Exponential Increase
+
+```javascript
+quantum = [2, 4, 8, 16]
+//        Responsive → Efficient
+```
+
+Each level doubles the quantum. Good for general-purpose systems.
+
+### Linear Increase
+
+```javascript
+quantum = [5, 10, 15, 20]
+```
+
+Steady increase. More predictable behavior.
+
+### Adaptive
+
+```javascript
+quantum = [2, 4, 8, 100]  // Last queue is essentially FIFO
+```
+
+Final queue runs processes to completion.
+
+## Preventing Starvation
+
+MLFQ prevents starvation through:
+
+### Priority Boosting
+
+```javascript
+// Periodically reset all processes to highest priority
+if (tiempoActual % BOOST_INTERVAL === 0) {
+  for (let proceso of procesos) {
+    if (!proceso.terminado) {
+      proceso.nivel = 0;
+      // Move to queue 0
+    }
+  }
+}
+```
+
+Every N time units, boost all processes back to top priority.
+
+### Better Accounting
+
+```javascript
+// Track total CPU time used, not just current quantum
+proceso.cpuUsado += tiempoEjecucion;
+if (proceso.cpuUsado >= DEMOTION_THRESHOLD) {
+  demoteProcess(proceso);
+}
+```
+
+Prevent gaming by tracking cumulative CPU usage.
+
+## Performance Characteristics
+
+- **Time Complexity**: O(n × levels) per scheduling decision
+- **Space Complexity**: O(n × levels) for queue storage
+- **Response Time**: Excellent for short processes, good for long
+- **Turnaround Time**: Balanced, better than Round Robin
+- **Throughput**: Good for mixed workloads
+
+## Real-World Usage
+
+MLFQ is used in many production operating systems:
+
+### BSD Unix
+
+- 32 priority levels
+- Dynamic priority adjustment
+- User and kernel priorities
+
+### Windows
+
+- 32 priority levels (0-31)
+- Real-time priorities (16-31) don't demote
+- Normal priorities (0-15) use MLFQ
+
+### Solaris
+
+- 4 scheduling classes
+- Time-sharing class uses MLFQ
+- Interactive processes get priority boost
+
+## Comparison with Other Algorithms
+
+| Metric | RR | Priority | MLFQ |
+|--------|----|---------:|------|
+| Complexity | Low | Medium | High |
+| Adaptivity | None | Static | Dynamic |
+| Response Time | Good | Varies | Excellent |
+| CPU-Intensive | Fair | Poor | Fair |
+| Interactive | Good | Good | Excellent |
+| Configuration | 1 param | N params | N params |
+
+## Use Cases
+
+<Note>
+MLFQ works best for:
+- General-purpose operating systems
+- Web servers with mixed request types
+- Systems with interactive + batch workloads
+- Any scenario requiring automatic priority adjustment
+- Multi-user time-sharing systems
+</Note>
+
+## Advanced Variants
+
+### MLFQ with I/O Priority Boost
+
+```javascript
+// When process blocks on I/O, boost it back to higher priority
+if (proceso.blockedOnIO) {
+  proceso.nivel = Math.max(0, proceso.nivel - 1);
+}
+```
+
+### MLFQ with User Hints
+
+```javascript
+// Allow users to provide hints about process type
+if (proceso.hint === 'interactive') {
+  quantumMultiplier = 0.5;  // Smaller quantum, stays responsive
+}
+```
+
+### Fair-Share MLFQ
+
+```javascript
+// Ensure users (not just processes) get fair CPU share
+// Track CPU usage per user, adjust priorities accordingly
+```
+
+## Try It Out
+
+Use the simulator to experiment with MLFQ:
+
+1. Try different quantum arrays: `[1,2]`, `[2,4,8]`, `[5,10,15]`
+2. Mix short and long processes
+3. Observe how processes move between queues
+4. Compare with simple Round Robin
+5. Test with many levels vs. few levels
+
+## Related Algorithms
+
+- [Round Robin](/algorithms/round-robin) - MLFQ with single queue
+- [Priority Scheduling](/algorithms/priority) - Static version of MLFQ
+- [SJF](/algorithms/sjf) - What MLFQ approximates for unknown burst times

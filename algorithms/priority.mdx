@@ -1,0 +1,345 @@
+---
+title: Priority Scheduling
+description: Understanding priority-based CPU scheduling
+---
+
+## Overview
+
+Priority Scheduling is a CPU scheduling algorithm where each process is assigned a priority value, and the CPU executes the highest-priority process among those ready to run. Lower priority numbers indicate higher priority (priority 0 is highest).
+
+<Info>
+This implementation is **non-preemptive**. Once a process starts execution, it runs to completion even if a higher-priority process arrives.
+</Info>
+
+<Note>
+A preemptive variant exists where a running process can be interrupted if a higher-priority process arrives. This implementation uses the non-preemptive version.
+</Note>
+
+## How It Works
+
+The Priority Scheduling algorithm follows these steps:
+
+1. At each decision point, identify all processes that have arrived and are waiting
+2. Among available processes, select the one with the highest priority (lowest number)
+3. Execute that process to completion (non-preemptive)
+4. If multiple processes have the same priority, use arrival time as tie-breaker
+5. Repeat until all processes complete
+
+## Algorithm Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `llegada` | Array | Arrival times for each process |
+| `cpu` | Array | CPU burst times (execution duration) |
+| `prioridad` | Array | Priority values (0 = highest priority) |
+
+## Implementation
+
+Here's the core Priority Scheduling algorithm logic:
+
+```javascript
+function prioridad(llegada, cpu, prioridad) {
+  let procesos = [];
+
+  // Create process objects with priority
+  for (let i = 0; i < llegada.length; i++) {
+    procesos.push({
+      id: i,
+      llegada: llegada[i],
+      cpu: cpu[i],
+      prioridad: prioridad[i],
+      terminado: false,
+      inicio: null,
+      finalizacion: null,
+    });
+  }
+
+  let tiempoActual = 0;
+  let completados = 0;
+  let n = procesos.length;
+
+  while (completados < n) {
+    // Find all available processes
+    let disponibles = [];
+    for (let proceso of procesos) {
+      if (proceso.llegada <= tiempoActual && !proceso.terminado) {
+        disponibles.push(proceso);
+      }
+    }
+
+    // If no process available, advance time
+    if (disponibles.length === 0) {
+      tiempoActual++;
+      continue;
+    }
+
+    // Sort by priority, then arrival time, then ID
+    disponibles.sort((a, b) => {
+      if (a.prioridad !== b.prioridad) {
+        return a.prioridad - b.prioridad;  // Lower number = higher priority
+      }
+      if (a.llegada !== b.llegada) {
+        return a.llegada - b.llegada;      // Earlier arrival wins
+      }
+      return a.id - b.id;                   // Lower ID wins
+    });
+
+    let procesoActual = disponibles[0];
+    
+    // Execute process to completion (non-preemptive)
+    procesoActual.inicio = tiempoActual;
+    procesoActual.finalizacion = tiempoActual + procesoActual.cpu;
+    tiempoActual = procesoActual.finalizacion;
+    procesoActual.terminado = true;
+    completados++;
+  }
+
+  // Calculate metrics
+  for (let proceso of procesos) {
+    proceso.retorno = proceso.finalizacion - proceso.llegada;
+    proceso.espera = proceso.retorno - proceso.cpu;
+    proceso.respuesta = proceso.inicio - proceso.llegada;
+  }
+
+  // Format results
+  let inicio = [];
+  let finalizacion = [];
+  let espera = [];
+  let retorno = [];
+
+  for (let proceso of procesos) {
+    inicio[proceso.id] = proceso.inicio;
+    finalizacion[proceso.id] = proceso.finalizacion;
+    retorno[proceso.id] = proceso.retorno;
+    espera[proceso.id] = proceso.espera;
+  }
+
+  return {
+    inicio,
+    finalizacion,
+    espera,
+    retorno,
+    tiempoTotal: Math.max(...finalizacion),
+  };
+}
+```
+
+## Example Walkthrough
+
+Let's simulate Priority Scheduling with four processes:
+
+| Process | Arrival Time | CPU Time | Priority |
+|---------|-------------|----------|----------|
+| P0 | 0 | 4 | 2 |
+| P1 | 1 | 3 | 0 |
+| P2 | 2 | 1 | 1 |
+| P3 | 3 | 5 | 3 |
+
+### Execution Timeline:
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11 12 13
+      [-- P0 --][- P1 -][P2][---- P3 ----]
+```
+
+### Step-by-Step:
+
+1. **Time 0**: P0 arrives and starts (only process available)
+   - P0 priority: 2
+   - Runs to completion (non-preemptive)
+
+2. **Time 4**: P0 completes
+   - Available: P1 (priority 0), P2 (priority 1), P3 (priority 3)
+   - **P1 selected** (highest priority: 0)
+   - Runs to completion
+
+3. **Time 7**: P1 completes
+   - Available: P2 (priority 1), P3 (priority 3)
+   - **P2 selected** (highest priority: 1)
+   - Runs to completion
+
+4. **Time 8**: P2 completes
+   - Available: P3 (priority 3)
+   - **P3 selected** (only process left)
+   - Runs to completion
+
+5. **Time 13**: P3 completes, all done
+
+### Results:
+
+| Process | Priority | Start | Finish | Waiting | Turnaround |
+|---------|----------|-------|--------|---------|------------|
+| P0 | 2 | 0 | 4 | 0 | 4 |
+| P1 | 0 | 4 | 7 | 3 | 6 |
+| P2 | 1 | 7 | 8 | 5 | 6 |
+| P3 | 3 | 8 | 13 | 5 | 10 |
+
+**Average Waiting Time**: (0 + 3 + 5 + 5) / 4 = 3.25
+
+**Average Turnaround Time**: (4 + 6 + 6 + 10) / 4 = 6.5
+
+<Note>
+Notice how P1 (highest priority) waits for P0 to finish because this is non-preemptive. In a preemptive version, P1 would interrupt P0.
+</Note>
+
+## Key Characteristics
+
+### Advantages
+
+- **Flexible control** - Explicit priority assignment
+- **Critical tasks first** - High-priority processes get CPU quickly
+- **Real-time support** - Can guarantee critical deadlines
+- **Better than FIFO** for mixed-importance workloads
+- **Simple to implement** and understand
+
+### Disadvantages
+
+- **Starvation risk** - Low-priority processes may never execute
+- **Priority assignment** can be difficult to determine
+- **Not optimal** for average waiting time
+- **Requires priority knowledge** - may not be available
+- **Unfair** to low-priority processes
+
+<Warning>
+**Starvation**: Low-priority processes can wait indefinitely if high-priority processes keep arriving. Use aging mechanisms to prevent this.
+</Warning>
+
+## Tie-Breaking Rules
+
+When multiple processes have the same priority:
+
+1. **First tie-breaker**: Earliest arrival time (FIFO within priority)
+2. **Second tie-breaker**: Lowest process ID
+
+```javascript
+disponibles.sort((a, b) => {
+  if (a.prioridad !== b.prioridad) {
+    return a.prioridad - b.prioridad;  // Priority first
+  }
+  if (a.llegada !== b.llegada) {
+    return a.llegada - b.llegada;      // Then arrival time
+  }
+  return a.id - b.id;                   // Then process ID
+});
+```
+
+## Preventing Starvation
+
+In production systems, starvation is prevented using **aging**:
+
+```javascript
+// Pseudo-code for priority aging
+function updatePriorities(procesos, tiempoActual) {
+  for (let proceso of procesos) {
+    if (!proceso.terminado) {
+      let waitTime = tiempoActual - proceso.llegada;
+      // Increase priority (decrease number) as wait time grows
+      proceso.prioridad = proceso.prioridadOriginal - Math.floor(waitTime / 10);
+    }
+  }
+}
+```
+
+As processes wait longer, their priority gradually increases until they eventually get CPU time.
+
+## Preemptive vs Non-Preemptive
+
+### Non-Preemptive (This Implementation)
+
+- Process runs to completion once started
+- Simpler to implement
+- Lower overhead (fewer context switches)
+- Can delay critical processes if long process runs first
+
+### Preemptive Variant
+
+- Running process can be interrupted
+- Better response time for high-priority arrivals
+- Higher overhead (more context switches)
+- More complex to implement
+
+```javascript
+// Preemptive version would check after each time unit:
+if (newHigherPriorityArrived) {
+  saveCurrentProcess();
+  switchToHigherPriority();
+}
+```
+
+## Performance Characteristics
+
+- **Time Complexity**: O(n²) worst case (n iterations × sorting)
+- **Space Complexity**: O(n) for process data
+- **Response Time**: Excellent for high-priority, poor for low-priority
+- **Throughput**: Depends on priority distribution
+- **Fairness**: Unfair by design (priority-based)
+
+## Priority Assignment Strategies
+
+How to assign priorities in real systems:
+
+### Static Priorities
+
+- Set at process creation
+- Never change during execution
+- Simple but inflexible
+- Examples: system processes (priority 0), user processes (priority 10)
+
+### Dynamic Priorities
+
+- Adjust during execution based on behavior
+- More flexible and adaptive
+- Examples:
+  - I/O-bound processes get higher priority
+  - CPU-bound processes get lower priority
+  - Aging increases priority over time
+
+### User-Assigned
+
+- Users specify importance (e.g., `nice` values in Unix)
+- System may adjust based on user permissions
+- Balance user control with system fairness
+
+## Use Cases
+
+<Note>
+Priority Scheduling works best for:
+- Real-time operating systems
+- Systems with critical/non-critical task mix
+- Embedded systems with interrupt handlers
+- Background vs foreground task management
+- Any scenario requiring explicit importance control
+</Note>
+
+## Real-World Examples
+
+1. **Operating Systems**: Kernel processes have higher priority than user processes
+2. **Network Routers**: Voice/video packets get higher priority than file transfers
+3. **Embedded Systems**: Interrupt handlers run at highest priority
+4. **Databases**: Transaction commits get higher priority than reads
+
+## Comparison with Other Algorithms
+
+| Metric | FIFO | SJF | Priority |
+|--------|------|-----|----------|
+| Flexibility | None | None | High |
+| Starvation Risk | No | Yes | Yes |
+| Avg Waiting Time | Medium | Optimal | Depends |
+| Real-time Support | Poor | Poor | Excellent |
+| Implementation | Simplest | Simple | Moderate |
+
+## Try It Out
+
+Use the simulator to experiment with Priority Scheduling:
+
+1. Assign different priorities to processes
+2. Observe how high-priority processes jump ahead
+3. Test starvation scenarios (many high-priority arrivals)
+4. Compare with SJF by treating CPU time as priority
+5. Try equal priorities to see FIFO behavior
+
+## Related Algorithms
+
+- [SJF](/algorithms/sjf) - Special case where priority = CPU time
+- [MLFQ](/algorithms/mlfq) - Dynamic priority adjustment with multiple queues
+- [Round Robin](/algorithms/round-robin) - Can be combined with priority levels

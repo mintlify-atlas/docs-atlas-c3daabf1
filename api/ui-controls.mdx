@@ -1,0 +1,332 @@
+---
+title: 'UI Controls'
+description: 'Main UI control functions for algorithm selection, input generation, and simulation management'
+---
+
+## Overview
+
+The UI control functions manage the user interface flow, from algorithm selection to simulation playback. These functions handle screen transitions, dynamic form generation, and simulation state management.
+
+## Algorithm Selection
+
+### seleccionarAlgoritmo()
+
+Selects a scheduling algorithm and transitions from the home screen to the input form.
+
+```javascript
+function seleccionarAlgoritmo(tipo)
+```
+
+<ParamField path="tipo" type="string" required>
+  Algorithm type identifier. Valid values:
+  - `"fifo"` - First In First Out
+  - `"sjf"` - Shortest Job First
+  - `"rr"` - Round Robin
+  - `"prioridad"` - Priority Scheduling
+  - `"mlfq"` - Multi-Level Feedback Queue
+</ParamField>
+
+**Behavior:**
+- Sets the global `algoritmoActual` variable
+- Hides the home screen (`pantallaInicio`)
+- Shows the form screen (`pantallaFormulario`)
+- Updates the algorithm title display
+
+**Example:**
+```javascript
+// User clicks Round Robin button
+seleccionarAlgoritmo("rr");
+// UI switches to form screen with "Round Robin" title
+```
+
+**Integration:**
+Called by button click events in the home screen. Each algorithm button triggers this function with its corresponding type identifier.
+
+---
+
+## Input Generation
+
+### generarInputs()
+
+Dynamically generates input fields based on the number of processes and selected algorithm.
+
+```javascript
+function generarInputs()
+```
+
+**Behavior:**
+- Reads the number of processes from `numProcesos` input field
+- Validates that the number is positive
+- Clears the `inputs` div
+- Generates algorithm-specific inputs:
+  - **Round Robin:** Quantum field
+  - **MLFQ:** Quantum levels field (comma-separated)
+  - **Priority:** Priority field for each process
+- Creates arrival time and CPU burst inputs for each process
+- Adds a "Simular" button that calls `simular(n)`
+
+**Example:**
+```javascript
+// User enters "3" in numProcesos and clicks generate
+generarInputs();
+
+// For Round Robin, generates:
+// - Quantum input
+// - Proceso 1: Llegada, CPU
+// - Proceso 2: Llegada, CPU
+// - Proceso 3: Llegada, CPU
+// - Simular button
+```
+
+**Validation:**
+Displays an alert if the process number is invalid (NaN or ≤ 0).
+
+---
+
+## Simulation Execution
+
+### simular()
+
+Collects input data, executes the selected algorithm, displays results, and prepares the timeline for animation.
+
+```javascript
+function simular(n)
+```
+
+<ParamField path="n" type="number" required>
+  Number of processes to simulate
+</ParamField>
+
+**Behavior:**
+
+1. **Data Collection:**
+   - Reads arrival times and CPU bursts from input fields
+   - For Priority: collects priority values
+   - For Round Robin: reads quantum value
+   - For MLFQ: parses comma-separated quantum levels
+
+2. **Algorithm Execution:**
+   - Calls the appropriate algorithm function:
+     - `fifo(llegada, cpu)`
+     - `sjf(llegada, cpu)`
+     - `roundRobin(llegada, cpu, quantum)`
+     - `prioridad(llegada, cpu, prioridades)`
+     - `mlfq(llegada, cpu, quantums)`
+
+3. **Results Display:**
+   - Shows the results section
+   - Calls `mostrarResultados()` to render metrics table
+
+4. **Timeline Generation:**
+   - For Round Robin: `generarTimelineRR(llegada, cpu, quantum)`
+   - For MLFQ: `generarTimelineMLFQ(llegada, cpu, quantums)`
+   - For others: `generarTimelineBasico(resultados, llegada)`
+
+5. **Simulation Reset:**
+   - Calls `reiniciarSimulacion()` to clear visual elements
+
+**Example:**
+```javascript
+// User fills inputs and clicks Simular
+simular(3);
+
+// Executes:
+// 1. Collects data from llegada0, cpu0, llegada1, cpu1, llegada2, cpu2
+// 2. Runs selected algorithm (e.g., FIFO)
+// 3. Displays results table
+// 4. Generates timeline for animation
+// 5. Resets Gantt chart and CPU/queue displays
+```
+
+**Error Handling:**
+Displays an alert and stops execution if the algorithm returns null/undefined.
+
+---
+
+## Simulation Controls
+
+### iniciarSimulacion()
+
+Starts the step-by-step animation of the scheduling timeline.
+
+```javascript
+function iniciarSimulacion()
+```
+
+**Behavior:**
+- Checks if `timelineGlobal` has data
+- Creates an interval that executes every 500ms
+- Each interval:
+  - Calls `renderPaso()` with the current timeline step
+  - Increments `pasoActual`
+  - Stops when all steps are rendered
+
+**Example:**
+```javascript
+// User clicks Play button
+iniciarSimulacion();
+
+// Animation starts:
+// t=0: renders first step
+// t=500ms: renders second step
+// t=1000ms: renders third step
+// ... continues until timeline completes
+```
+
+**Integration:**
+Connected to the Play button in the simulation controls.
+
+---
+
+### pausarSimulacion()
+
+Pauses the running simulation animation.
+
+```javascript
+function pausarSimulacion()
+```
+
+**Behavior:**
+- Clears the active interval
+- Preserves `pasoActual` so animation can resume from the same point
+
+**Example:**
+```javascript
+// User clicks Pause button during animation
+pausarSimulacion();
+
+// Animation freezes at current step
+// Can be resumed with iniciarSimulacion()
+```
+
+---
+
+### reiniciarSimulacion()
+
+Resets the simulation animation to the beginning and clears all visual elements.
+
+```javascript
+function reiniciarSimulacion()
+```
+
+**Behavior:**
+- Clears the animation interval
+- Resets `pasoActual` to 0
+- Clears visual elements:
+  - Gantt chart (`ganttLive`)
+  - Ready queue (`colaBox`)
+  - CPU display (`cpuBox`) - set to "-"
+
+**Example:**
+```javascript
+// User clicks Restart button
+reiniciarSimulacion();
+
+// Visual state:
+// - Gantt chart: empty
+// - Queue: empty
+// - CPU: "-"
+// - pasoActual: 0
+```
+
+**Usage Context:**
+- Called automatically by `simular()` before starting a new simulation
+- Can be manually triggered by the Restart button
+
+---
+
+### volverInicio()
+
+Returns to the home screen and completely resets the application state.
+
+```javascript
+function volverInicio()
+```
+
+**Behavior:**
+
+1. **Stop Animation:**
+   - Clears the simulation interval
+
+2. **Reset Variables:**
+   - `pasoActual = 0`
+   - `timelineGlobal = []`
+
+3. **Clear Visuals:**
+   - Gantt chart
+   - Ready queue
+   - CPU display
+   - Results table (`salida`)
+   - Input fields container (`inputs`)
+   - Process number input (`numProcesos`)
+
+4. **Screen Transition:**
+   - Hides results section
+   - Hides form screen
+   - Shows home screen
+
+**Example:**
+```javascript
+// User clicks "Volver al Inicio" button
+volverInicio();
+
+// Complete reset:
+// - Returns to algorithm selection screen
+// - All inputs cleared
+// - All results cleared
+// - Ready for new simulation
+```
+
+**Integration:**
+Connected to the "Back to Home" button available throughout the application.
+
+---
+
+## Global State Variables
+
+The UI control functions rely on these global variables:
+
+```javascript
+let algoritmoActual = "";      // Selected algorithm type
+let timelineGlobal = [];        // Complete simulation timeline
+let pasoActual = 0;             // Current animation step index
+let intervaloSimulacion = null; // Animation interval reference
+```
+
+**State Flow:**
+1. `seleccionarAlgoritmo()` sets `algoritmoActual`
+2. `simular()` populates `timelineGlobal`
+3. `iniciarSimulacion()` creates `intervaloSimulacion` and increments `pasoActual`
+4. `reiniciarSimulacion()` resets `pasoActual`
+5. `volverInicio()` clears all state
+
+---
+
+## Integration Example
+
+Complete workflow from algorithm selection to simulation:
+
+```javascript
+// 1. User selects Round Robin
+seleccionarAlgoritmo("rr");
+
+// 2. User enters 3 processes
+document.getElementById("numProcesos").value = "3";
+generarInputs();
+
+// 3. User fills process data and clicks Simular
+// (simular is called automatically via the generated button)
+simular(3);
+
+// 4. Results displayed, user clicks Play
+iniciarSimulacion();
+
+// 5. User pauses to examine a step
+pausarSimulacion();
+
+// 6. User resumes
+iniciarSimulacion();
+
+// 7. User wants to try a different algorithm
+volverInicio();
+```

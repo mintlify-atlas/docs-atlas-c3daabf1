@@ -1,0 +1,199 @@
+---
+title: 'Docker Deployment'
+description: 'Deploy the CPU Scheduling Algorithms Simulator using Docker'
+icon: 'docker'
+---
+
+## Overview
+
+Docker deployment provides a containerized, production-like environment for running the simulator. This method is recommended for evaluation, testing, and consistent deployment across different systems.
+
+## Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop) installed on your system
+- Basic familiarity with Docker commands
+
+## Dockerfile
+
+The project includes a lightweight Dockerfile that uses Nginx Alpine to serve the static application:
+
+```dockerfile
+FROM nginx:alpine
+COPY . /usr/share/nginx/html
+EXPOSE 80
+```
+
+This Dockerfile:
+- Uses the lightweight `nginx:alpine` base image
+- Copies all project files to Nginx's web root
+- Exposes port 80 for HTTP traffic
+
+## Deployment Steps
+
+<Steps>
+  <Step title="Clone the repository">
+    First, clone the project repository:
+    
+    ```bash
+    git clone https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion.git
+    cd AlgoritmosPlanificacion
+    ```
+  </Step>
+
+  <Step title="Build the Docker image">
+    Build the Docker image with a descriptive tag:
+    
+    ```bash
+    docker build -t algoritmos-planificacion .
+    ```
+    
+    This process typically takes less than a minute as the image is very lightweight.
+  </Step>
+
+  <Step title="Run the container">
+    Start the container and map port 8080 to the container's port 80:
+    
+    ```bash
+    docker run -p 8080:80 algoritmos-planificacion
+    ```
+    
+    <Note>
+      The `-p 8080:80` flag maps your local port 8080 to the container's port 80. You can change 8080 to any available port on your system.
+    </Note>
+  </Step>
+
+  <Step title="Access the application">
+    Open your web browser and navigate to:
+    
+    ```
+    http://localhost:8080
+    ```
+    
+    The simulator should now be running in your Docker container!
+  </Step>
+</Steps>
+
+## Docker Commands Reference
+
+<CodeGroup>
+
+```bash Build Image
+docker build -t algoritmos-planificacion .
+```
+
+```bash Run Container (Foreground)
+docker run -p 8080:80 algoritmos-planificacion
+```
+
+```bash Run Container (Background)
+docker run -d -p 8080:80 --name cpu-scheduler algoritmos-planificacion
+```
+
+```bash Stop Container
+docker stop cpu-scheduler
+```
+
+```bash Remove Container
+docker rm cpu-scheduler
+```
+
+```bash View Logs
+docker logs cpu-scheduler
+```
+
+```bash List Running Containers
+docker ps
+```
+
+</CodeGroup>
+
+## Advanced Options
+
+### Running in Detached Mode
+
+To run the container in the background (detached mode):
+
+```bash
+docker run -d -p 8080:80 --name cpu-scheduler algoritmos-planificacion
+```
+
+The `-d` flag runs the container in detached mode, and `--name` gives it a friendly name.
+
+### Using Different Ports
+
+If port 8080 is already in use, you can map to a different port:
+
+```bash
+# Use port 3000 instead
+docker run -p 3000:80 algoritmos-planificacion
+
+# Access at http://localhost:3000
+```
+
+### Viewing Container Logs
+
+To view Nginx access logs:
+
+```bash
+docker logs -f cpu-scheduler
+```
+
+The `-f` flag follows the log output in real-time.
+
+## Benefits of Docker Deployment
+
+<CardGroup cols={2}>
+  <Card title="Consistency" icon="check-double">
+    Runs identically on any system with Docker
+  </Card>
+  
+  <Card title="Isolation" icon="box">
+    Contained environment doesn't affect your system
+  </Card>
+  
+  <Card title="Production-Ready" icon="rocket">
+    Uses Nginx, a production-grade web server
+  </Card>
+  
+  <Card title="Easy Cleanup" icon="trash">
+    Remove everything with a single command
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port already in use">
+    If you see an error about port 8080 being in use, either:
+    - Stop the application using that port
+    - Use a different port: `docker run -p 3000:80 algoritmos-planificacion`
+  </Accordion>
+  
+  <Accordion title="Docker daemon not running">
+    Ensure Docker Desktop is running. On macOS/Windows, check the system tray for the Docker icon.
+  </Accordion>
+  
+  <Accordion title="Permission denied errors (Linux)">
+    On Linux, you may need to run Docker commands with `sudo`, or add your user to the `docker` group:
+    ```bash
+    sudo usermod -aG docker $USER
+    ```
+    Then log out and back in.
+  </Accordion>
+  
+  <Accordion title="Build fails">
+    Ensure you're in the correct directory containing the Dockerfile:
+    ```bash
+    cd AlgoritmosPlanificacion
+    ls -la Dockerfile
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+  Remember to stop and remove containers when you're done to free up system resources:
+  ```bash
+  docker stop cpu-scheduler
+  docker rm cpu-scheduler
+  ```
+</Warning>

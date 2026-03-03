@@ -1,0 +1,592 @@
+---
+title: 'Interpreting Results'
+description: 'Understanding metrics, visualizations, and performance data from CPU scheduling simulations'
+---
+
+The simulator provides comprehensive results including numerical metrics and visual representations of process execution. This guide explains how to read and interpret all result components.
+
+## Metrics Displayed
+
+The results table (`salida`) shows detailed metrics for each process. Understanding these values is crucial for evaluating scheduling algorithm performance.
+
+### Process-Level Metrics
+
+For each process (P1, P2, P3, etc.), the following metrics are displayed:
+
+<Tabs>
+  <Tab title="Llegada (Arrival Time)">
+    **Definition:** The time unit when the process enters the system.
+    
+    **Display:** Original input value you provided.
+    
+    **Interpretation:**
+    - Processes with arrival time 0 are available immediately
+    - Later arrivals (1, 2, 3...) join the ready queue at their specified time
+    - Impacts waiting time calculation
+    
+    **Example:** If Llegada = 3, the process cannot be scheduled before time unit 3.
+  </Tab>
+  
+  <Tab title="Inicio (Start Time)">
+    **Definition:** The time unit when the process first receives CPU time.
+    
+    **Calculation:** Determined by algorithm execution.
+    
+    **Interpretation:**
+    - Always ≥ arrival time (process can't start before it arrives)
+    - Difference between start and arrival = time spent waiting initially
+    - For preemptive algorithms (RR, MLFQ), this is the *first* execution, not every execution
+    
+    **Example:** Llegada = 2, Inicio = 5 means the process waited 3 time units before first execution.
+  </Tab>
+  
+  <Tab title="Fin (Finish Time)">
+    **Definition:** The time unit when the process completes all its CPU burst time.
+    
+    **Calculation:** When the process's remaining CPU time reaches 0.
+    
+    **Interpretation:**
+    - Always > start time (unless CPU burst is 0, which is invalid)
+    - For non-preemptive algorithms (FIFO, SJF): Fin = Inicio + CPU burst
+    - For preemptive algorithms: Fin accounts for interruptions and waiting periods
+    
+    **Example:** If Inicio = 5, CPU = 7, and the algorithm is FIFO, then Fin = 12.
+  </Tab>
+  
+  <Tab title="Espera (Waiting Time)">
+    **Definition:** Total time the process spent in the ready queue (not executing).
+    
+    **Calculation:** 
+    ```
+    Espera = Retorno - CPU burst
+    Or: Espera = (Fin - Llegada) - CPU burst
+    ```
+    
+    **Interpretation:**
+    - Lower waiting time indicates better responsiveness
+    - Key metric for evaluating scheduling fairness
+    - Heavily influenced by algorithm choice and process characteristics
+    - For algorithms like SJF: short processes typically have lower waiting time
+    - For FIFO: later arrivals often have higher waiting time
+    
+    **Example:** If Fin = 20, Llegada = 5, CPU = 8, then Espera = (20 - 5) - 8 = 7.
+  </Tab>
+  
+  <Tab title="Retorno (Turnaround Time)">
+    **Definition:** Total time from arrival to completion.
+    
+    **Calculation:**
+    ```
+    Retorno = Fin - Llegada
+    Or: Retorno = Espera + CPU burst
+    ```
+    
+    **Interpretation:**
+    - Represents the complete user experience (arrival to completion)
+    - Includes both waiting time and execution time
+    - Lower turnaround time indicates better overall performance
+    - Minimum possible = CPU burst (when process executes immediately)
+    
+    **Example:** If Llegada = 3, Fin = 15, then Retorno = 15 - 3 = 12.
+  </Tab>
+</Tabs>
+
+### System-Level Metrics
+
+**Tiempo Total (Total Time):** The time unit when all processes complete.
+
+- Equals the maximum finish time among all processes
+- Represents the entire simulation duration
+- Lower total time doesn't necessarily mean better algorithm (depends on context)
+- Useful for comparing CPU utilization across algorithms
+
+<Info>
+  The simulator displays individual process metrics and total time. To calculate average waiting time or average turnaround time, manually sum the values and divide by the number of processes.
+</Info>
+
+## How to Read the Gantt Chart
+
+The Gantt chart (`ganttLive`) is a horizontal timeline showing CPU allocation over time. It's built block-by-block during the animation.
+
+### Gantt Chart Structure
+
+<Steps>
+  <Step title="Time Units">
+    Each 8x8 pixel block represents one time unit. Time progresses from left to right.
+  </Step>
+  
+  <Step title="Process Labels">
+    Each block displays:
+    - **"P1", "P2", "P3"**, etc.: Which process was executing during that time unit
+    - **"-"**: CPU was idle (no process executing)
+  </Step>
+  
+  <Step title="Visual Appearance">
+    - Blocks are indigo-colored with rounded corners
+    - Font is small (text-xs) and bold
+    - Hover effect scales blocks to 110% for emphasis
+    - Blocks are evenly spaced with a 2-pixel gap
+  </Step>
+  
+  <Step title="Scrolling">
+    As the chart extends beyond the visible area, it auto-scrolls to keep the latest block in view. You can manually scroll left to review earlier time units.
+  </Step>
+</Steps>
+
+### Interpreting Patterns
+
+<AccordionGroup>
+  <Accordion title="Continuous Blocks (Non-Preemptive)">
+    **Pattern:** Long sequences of the same process label (e.g., P1-P1-P1-P1-P1)
+    
+    **Algorithms:** FIFO, SJF (non-preemptive), Priority (non-preemptive)
+    
+    **Meaning:** Process executed uninterrupted until completion. No context switching during execution.
+    
+    **Example:**
+    ```
+    [P1][P1][P1][P1][P2][P2][P2][P3][P3]
+    ```
+    This shows P1 ran for 4 units, P2 for 3 units, P3 for 2 units without interruption.
+  </Accordion>
+  
+  <Accordion title="Alternating Blocks (Preemptive)">
+    **Pattern:** Frequent changes between process labels (e.g., P1-P2-P3-P1-P2)
+    
+    **Algorithms:** Round Robin, MLFQ
+    
+    **Meaning:** Processes are being time-shared. Context switching occurs regularly.
+    
+    **Example:**
+    ```
+    [P1][P1][P2][P2][P3][P3][P1][P1][P2][P3]
+    ```
+    Round Robin with quantum=2. Each process gets 2 time units before switching.
+  </Accordion>
+  
+  <Accordion title="Idle Periods">
+    **Pattern:** Blocks showing "-" instead of process IDs
+    
+    **Algorithms:** Any, but common when processes have staggered arrivals
+    
+    **Meaning:** No processes were in the ready queue. CPU had nothing to execute.
+    
+    **Example:**
+    ```
+    [P1][P1][-][-][P2][P2][P2]
+    ```
+    P1 completes at time 2, but P2 doesn't arrive until time 4, causing 2 idle units.
+  </Accordion>
+  
+  <Accordion title="Burst Patterns (Round Robin)">
+    **Pattern:** Repeating sequences with quantum-length segments
+    
+    **Algorithm:** Round Robin
+    
+    **Meaning:** Each process gets exactly quantum time units (unless it completes sooner).
+    
+    **Example with Quantum=3:**
+    ```
+    [P1][P1][P1][P2][P2][P2][P1][P1][P1]
+    ```
+    Processes alternate in 3-unit bursts.
+  </Accordion>
+  
+  <Accordion title="Priority Shifting (MLFQ)">
+    **Pattern:** A process appears less frequently over time
+    
+    **Algorithm:** MLFQ
+    
+    **Meaning:** Process is moving to lower priority queues with larger quantums. Gets CPU less often but for longer periods.
+    
+    **Example:**
+    ```
+    [P1][P2][P1][P2][P1][-][-][P2][P2][P2][P2]
+    ```
+    P2 initially alternates with P1, then gets longer execution blocks as it moves to lower queues.
+  </Accordion>
+</AccordionGroup>
+
+## Queue Visualization
+
+The ready queue display (`colaBox`) shows which processes are waiting for CPU time at the current simulation step.
+
+### Queue Display Features
+
+**Visual Appearance:**
+- Gray background container with rounded corners
+- Each process is a separate box with padding
+- Boxes have pulse animation for visual interest
+- Horizontal layout with flex-wrap (wraps on narrow screens)
+- Minimum height of 60px (empty queue still shows the container)
+
+**Process Labels:**
+- Shows "P1", "P2", "P3", etc.
+- Order represents queue order (leftmost is next to execute for FIFO-based queues)
+
+### Algorithm-Specific Queue Behavior
+
+<Tabs>
+  <Tab title="FIFO Queue">
+    **Characteristic:** First-in, first-out order
+    
+    **What you'll see:**
+    - Processes appear in arrival order
+    - Leftmost process is next to execute
+    - Queue only grows when processes arrive
+    - Queue shrinks from the left as processes start execution
+    
+    **Example:** If P1 arrives at t=0, P2 at t=1, P3 at t=2, and P1 is executing, the queue shows: `[P2][P3]`
+  </Tab>
+  
+  <Tab title="SJF Queue">
+    **Characteristic:** Sorted by shortest remaining CPU burst
+    
+    **What you'll see:**
+    - Process with shortest CPU burst is next (leftmost)
+    - Queue order changes as new processes arrive (if they're shorter)
+    - May not match arrival order
+    
+    **Example:** If P1 needs 8 units, P2 needs 3 units, P3 needs 5 units, the queue might show: `[P2][P3][P1]`
+  </Tab>
+  
+  <Tab title="Round Robin Queue">
+    **Characteristic:** Circular queue with quantum-based rotation
+    
+    **What you'll see:**
+    - Processes cycle through the queue
+    - After using quantum, process moves to the back
+    - Queue is very dynamic, changing frequently
+    - Currently executing process is NOT in the queue
+    
+    **Example:** Queue at different times:
+    - t=0: `[P2][P3]` (P1 executing)
+    - t=2: `[P3][P1]` (P2 executing, P1 used its quantum)
+    - t=4: `[P1][P2]` (P3 executing)
+  </Tab>
+  
+  <Tab title="Priority Queue">
+    **Characteristic:** Ordered by priority value
+    
+    **What you'll see:**
+    - Highest priority process is next (leftmost)
+    - Order reflects priority, not arrival time
+    - Static order (unless priorities are dynamic, which they're not in this simulator)
+    
+    **Example:** If P1 has priority 3, P2 has priority 1, P3 has priority 2, queue shows: `[P2][P3][P1]` (assuming lower number = higher priority)
+  </Tab>
+  
+  <Tab title="MLFQ Queues">
+    **Characteristic:** Multiple priority levels with separate queues
+    
+    **What you'll see:**
+    - The display can show nested queue structures
+    - New processes start in queue 0 (highest priority)
+    - Processes move to lower queues if they don't complete within their quantum
+    - Higher priority queues are checked first
+    
+    **Note:** The visual display may flatten the queue structure, but the timeline generation accurately tracks multiple levels.
+  </Tab>
+</Tabs>
+
+<Warning>
+  The queue display is most accurate for Round Robin and MLFQ, where the timeline generation functions (`generarTimelineRR()` and `generarTimelineMLFQ()`) explicitly track queue state. For FIFO, SJF, and Priority, the basic timeline may show an empty queue array.
+</Warning>
+
+## Timeline Interpretation
+
+The timeline is built incrementally during animation. Each step (every 500ms) corresponds to one time unit in the simulation.
+
+### Timeline Data Structure
+
+Each step in `timelineGlobal` contains:
+
+```javascript
+{
+  tiempo: 5,              // Current time unit
+  ejecutando: 2,          // Process index (2 = P3), null if idle
+  cola: [0, 3, 1]         // Process indices in ready queue
+}
+```
+
+### Reading Timeline Progression
+
+<Steps>
+  <Step title="Time Advancement">
+    The `tiempo` field increments by 1 each step. This is the x-axis of your Gantt chart.
+  </Step>
+  
+  <Step title="CPU State">
+    The `ejecutando` field tells you:
+    - **Number (0, 1, 2...)**: Process index currently executing (displayed as P1, P2, P3...)
+    - **null**: CPU is idle
+  </Step>
+  
+  <Step title="Queue State">
+    The `cola` field (for RR and MLFQ) shows process indices waiting. For MLFQ, this may be a nested array representing multiple queue levels.
+  </Step>
+  
+  <Step title="State Changes">
+    Compare consecutive steps to see:
+    - Process preemption (ejecutando changes)
+    - Queue additions (new process in cola)
+    - Queue removals (process starts executing or completes)
+    - Queue reordering (for SJF or priority changes)
+  </Step>
+</Steps>
+
+## Example with Screenshots Descriptions
+
+Let's walk through a complete Round Robin example with 3 processes.
+
+### Scenario Setup
+
+**Algorithm:** Round Robin  
+**Quantum:** 2  
+**Processes:**
+- P1: Llegada=0, CPU=5
+- P2: Llegada=1, CPU=3  
+- P3: Llegada=2, CPU=4
+
+### Expected Results Table
+
+<Note>
+  After clicking "Simular", the results table (`salida`) displays:
+  
+  ```
+  Resultados ROUNDROBIN
+  
+  P1 | Llegada: 0 | Inicio: 0 | Fin: 11 | Espera: 6 | Retorno: 11
+  P2 | Llegada: 1 | Inicio: 2 | Fin: 9  | Espera: 5 | Retorno: 8
+  P3 | Llegada: 2 | Inicio: 4 | Fin: 12 | Espera: 6 | Retorno: 10
+  
+  Tiempo total: 12
+  ```
+</Note>
+
+### Metrics Analysis
+
+**Process 1:**
+- Starts immediately (arrives at t=0, no competition)
+- Finishes at t=11 (5 units of work + 6 units waiting)
+- Waiting time = 11 (turnaround) - 5 (CPU) = 6 units
+- Gets preempted multiple times to share CPU
+
+**Process 2:**
+- Arrives at t=1 while P1 is executing
+- First execution at t=2 (after P1 uses its quantum)
+- Finishes at t=9 with 5 units of waiting
+- Relatively efficient despite arriving second
+
+**Process 3:**
+- Arrives at t=2, joins queue behind P2
+- First execution at t=4
+- Finishes last at t=12
+- Waiting time matches P1 despite arriving later (fairness of RR)
+
+### Visual Timeline Description
+
+**Gantt Chart Pattern:**
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11
+CPU: [P1][P1][P2][P2][P3][P3][P1][P1][P2][P3][P3][P1]
+```
+
+**Detailed Breakdown:**
+
+<Accordion title="t=0 to t=1: P1 executes (quantum part 1)">
+  - **CPU Box:** P1
+  - **Queue:** Empty (P1 is executing, no other arrivals yet)
+  - **Gantt:** First two blocks are P1
+  - **Status:** P1 uses its first quantum (2 units)
+</Accordion>
+
+<Accordion title="t=2 to t=3: P2 executes (quantum part 1)">
+  - **CPU Box:** P2
+  - **Queue:** P1 (used its quantum, moved to back), P3 arrives at t=2 and joins queue
+  - **Gantt:** Blocks 3-4 are P2
+  - **Status:** P2 uses its first quantum (2 units)
+</Accordion>
+
+<Accordion title="t=4 to t=5: P3 executes (quantum part 1)">
+  - **CPU Box:** P3
+  - **Queue:** P1, P2 (both waiting for next turn)
+  - **Gantt:** Blocks 5-6 are P3
+  - **Status:** P3 uses its first quantum (2 units)
+</Accordion>
+
+<Accordion title="t=6 to t=7: P1 executes (quantum part 2)">
+  - **CPU Box:** P1
+  - **Queue:** P2, P3 (P1 came from front of queue)
+  - **Gantt:** Blocks 7-8 are P1
+  - **Status:** P1 uses another 2 units (4 total), needs 1 more
+</Accordion>
+
+<Accordion title="t=8: P2 executes (completes)">
+  - **CPU Box:** P2
+  - **Queue:** P3, P1
+  - **Gantt:** Block 9 is P2
+  - **Status:** P2 needs only 1 unit to complete, finishes before quantum expires
+</Accordion>
+
+<Accordion title="t=9 to t=10: P3 executes (quantum part 2)">
+  - **CPU Box:** P3
+  - **Queue:** P1 (P2 completed, removed from system)
+  - **Gantt:** Blocks 10-11 are P3
+  - **Status:** P3 uses another 2 units (4 total), completes
+</Accordion>
+
+<Accordion title="t=11: P1 executes (completes)">
+  - **CPU Box:** P1
+  - **Queue:** Empty (only P1 remains)
+  - **Gantt:** Block 12 is P1
+  - **Status:** P1 needs 1 final unit, completes
+</Accordion>
+
+### Key Observations
+
+<CardGroup cols={2}>
+  <Card title="Fair Time Sharing" icon="balance-scale">
+    Each process gets regular CPU time. No process waits excessively long between executions.
+  </Card>
+  
+  <Card title="Context Switching" icon="arrows-rotate">
+    The CPU switches between processes 6 times (changes in the Gantt chart). More switching than FIFO but ensures responsiveness.
+  </Card>
+  
+  <Card title="No Starvation" icon="check-circle">
+    All processes complete. No process is indefinitely delayed (contrast with Priority scheduling where low-priority processes can starve).
+  </Card>
+  
+  <Card title="Queue Dynamics" icon="list">
+    The ready queue is constantly changing as processes cycle through. The animation clearly shows this rotation.
+  </Card>
+</CardGroup>
+
+## Comparing Algorithms
+
+To evaluate algorithm performance, run the same process set with different algorithms and compare:
+
+<AccordionGroup>
+  <Accordion title="Average Waiting Time">
+    Sum all waiting times and divide by number of processes.
+    
+    **Lower is better** - indicates processes spend less time waiting.
+    
+    **Which algorithms excel:**
+    - SJF typically has the lowest average waiting time
+    - FIFO depends heavily on arrival order and CPU burst distribution
+    - RR has moderate waiting time, trades efficiency for fairness
+  </Accordion>
+  
+  <Accordion title="Average Turnaround Time">
+    Sum all turnaround times and divide by number of processes.
+    
+    **Lower is better** - indicates faster overall completion.
+    
+    **Which algorithms excel:**
+    - SJF minimizes average turnaround time mathematically
+    - FIFO can be good if short processes arrive first
+    - RR has higher turnaround due to context switching overhead
+  </Accordion>
+  
+  <Accordion title="CPU Utilization">
+    Count idle blocks in Gantt chart vs. total blocks.
+    
+    **Higher is better** - less wasted CPU time.
+    
+    **Affected by:**
+    - Process arrival patterns (staggered arrivals cause more idle time)
+    - Algorithm efficiency (all algorithms have same utilization given the same process set)
+    - Timeline length (idle time / total time)
+  </Accordion>
+  
+  <Accordion title="Fairness">
+    Variance in waiting times across processes.
+    
+    **Lower variance is better** - indicates more equitable treatment.
+    
+    **Which algorithms excel:**
+    - RR is most fair, all processes get regular CPU access
+    - Priority and SJF can be very unfair (some processes wait much longer)
+    - FIFO fairness depends on arrival order
+  </Accordion>
+  
+  <Accordion title="Response Time">
+    Time from arrival to first execution (Inicio - Llegada).
+    
+    **Lower is better** - indicates better interactivity.
+    
+    **Which algorithms excel:**
+    - RR provides excellent response time (processes get CPU quickly)
+    - Priority gives good response for high-priority processes
+    - FIFO and SJF may delay later arrivals significantly
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Run the same test case (same processes, arrival times, and CPU bursts) through all five algorithms. Compare the Gantt charts side-by-side to visualize the differences in scheduling behavior.
+</Tip>
+
+## Understanding Edge Cases
+
+<Warning>
+  **All processes arrive at t=0:**
+  - FIFO: Executes in the order you entered them (P1, P2, P3...)
+  - SJF: Executes shortest to longest
+  - RR: Round-robin rotation starting with P1
+  - Priority: Priority order
+  - MLFQ: Starts with P1 (first in queue 0), then rotates
+</Warning>
+
+<Warning>
+  **Processes arrive one at a time (no overlap):**
+  - All algorithms behave similarly (FIFO-like)
+  - Idle time appears between completions and next arrival
+  - Queue is often empty
+  - Preemptive advantages disappear
+</Warning>
+
+<Warning>
+  **All processes have identical CPU bursts:**
+  - SJF degenerates to FIFO (no shortest job to select)
+  - RR provides fairest distribution
+  - Priority follows priority order
+  - MLFQ behavior depends on arrival order and quantum values
+</Warning>
+
+## Performance Insights
+
+Use the results to gain insights into real-world scheduling:
+
+**FIFO (First In First Out):**
+- Simple, no overhead
+- Suffers from "convoy effect" (short processes wait for long ones)
+- Good when processes have similar lengths
+
+**SJF (Shortest Job First):**
+- Optimal for minimizing average waiting time
+- Requires knowing CPU burst times in advance (often impossible in real systems)
+- Can starve long processes if short ones keep arriving
+
+**Round Robin:**
+- Excellent for time-sharing systems
+- Good response time for all processes
+- Quantum choice is critical: too small = excessive context switching, too large = degenerates to FIFO
+
+**Priority Scheduling:**
+- Reflects real-world importance (e.g., system processes vs. user processes)
+- Risk of starvation for low-priority processes
+- Can combine with aging (increase priority over time) to prevent starvation
+
+**MLFQ (Multi-Level Feedback Queue):**
+- Adapts to process behavior
+- Short processes get better treatment (stay in high-priority queues)
+- Long processes gradually move to lower priority
+- Balances interactivity and fairness
+- Complex but powerful
+
+<Note>
+  The simulator provides a simplified environment. Real operating systems use much more complex scheduling algorithms with additional factors like I/O blocking, thread priorities, CPU affinity, and dynamic priority adjustments.
+</Note>

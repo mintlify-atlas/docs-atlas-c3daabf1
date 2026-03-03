@@ -1,0 +1,122 @@
+---
+title: 'Local Deployment'
+description: 'Run the CPU Scheduling Algorithms Simulator locally on your machine'
+icon: 'laptop'
+---
+
+## Overview
+
+The CPU Scheduling Algorithms Simulator is a static web application that runs entirely in the browser. No backend server or database is required, making local deployment simple and straightforward.
+
+## Requirements
+
+The only requirement for local deployment is a modern web browser:
+
+- Google Chrome (recommended)
+- Microsoft Edge
+- Mozilla Firefox
+- Safari
+
+No Node.js, npm, or other development tools are needed.
+
+## Local Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the project repository from GitHub:
+    
+    ```bash
+    git clone https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion.git
+    ```
+  </Step>
+
+  <Step title="Navigate to the project directory">
+    Change to the project directory:
+    
+    ```bash
+    cd AlgoritmosPlanificacion
+    ```
+  </Step>
+
+  <Step title="Open the application">
+    Open the main HTML file in your web browser:
+    
+    ```bash
+    # On macOS
+    open FIFO/index.html
+    
+    # On Linux
+    xdg-open FIFO/index.html
+    
+    # On Windows
+    start FIFO/index.html
+    ```
+    
+    Or simply navigate to the `FIFO` folder and double-click `index.html`.
+  </Step>
+
+  <Step title="Start using the simulator">
+    The application will open in your default browser and is ready to use immediately. No build process or server startup required!
+  </Step>
+</Steps>
+
+## Why Local Deployment?
+
+<CardGroup cols={2}>
+  <Card title="No Internet Required" icon="wifi-slash">
+    Run the simulator completely offline once cloned
+  </Card>
+  
+  <Card title="Instant Setup" icon="bolt">
+    No installation, compilation, or configuration needed
+  </Card>
+  
+  <Card title="Zero Dependencies" icon="circle-xmark">
+    Pure HTML, CSS, and JavaScript - no package managers
+  </Card>
+  
+  <Card title="Full Privacy" icon="shield">
+    All processing happens in your browser locally
+  </Card>
+</CardGroup>
+
+## File Structure
+
+After cloning, you'll find this structure:
+
+```
+AlgoritmosPlanificacion/
+├── FIFO/
+│   ├── css/
+│   │   └── styles.css
+│   ├── JS/
+│   │   ├── algoritmos.js
+│   │   ├── ui.js
+│   │   └── ...
+│   └── index.html          # Main entry point
+├── Dockerfile
+├── README.md
+└── .gitignore
+```
+
+The `FIFO/index.html` file is the main entry point for the application.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Browser compatibility issues">
+    If the application doesn't load properly, ensure you're using a modern browser version. Update your browser to the latest version if needed.
+  </Accordion>
+  
+  <Accordion title="Styles not loading">
+    If styles appear broken, ensure all files were cloned correctly. The CSS files should be in the `FIFO/css/` directory.
+  </Accordion>
+  
+  <Accordion title="JavaScript errors">
+    Check your browser's console (F12) for errors. Ensure JavaScript is enabled in your browser settings.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Since this is a static application, you can also use any local web server like Python's `http.server` or VS Code's Live Server extension if you prefer.
+</Note>

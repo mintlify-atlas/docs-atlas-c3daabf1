@@ -1,0 +1,158 @@
+---
+title: 'Interface Overview'
+description: 'Understanding the CPU Scheduling Algorithms Simulator interface and its components'
+---
+
+The simulator provides an intuitive, visually-rich interface that guides you through selecting algorithms, configuring processes, and visualizing scheduling results in real-time.
+
+## Main Screens
+
+The application is organized into three primary screens that represent the complete simulation workflow:
+
+### 1. Algorithm Selection Screen (`pantallaInicio`)
+
+The landing screen where you choose your scheduling algorithm. This screen displays:
+
+- **Title**: "Planificador de Procesos" (Process Scheduler)
+- **Instruction**: "Selecciona un algoritmo" (Select an algorithm)
+- **Algorithm Buttons**: Five color-coded buttons for different scheduling algorithms:
+  - **FIFO** (First In First Out) - Blue button
+  - **SJF** (Shortest Job First) - Green button
+  - **Round Robin** - Yellow button
+  - **Prioridad** (Priority) - Red button
+  - **MLFQ** (Multi-Level Feedback Queue) - Purple button
+
+### 2. Input Form Screen (`pantallaFormulario`)
+
+After selecting an algorithm, you're directed to the configuration screen where you:
+
+- See the selected algorithm name in the title (`tituloAlgoritmo`)
+- Enter the number of processes
+- Click "Continuar" (Continue) to generate process input fields
+- Configure individual process parameters (dynamically generated based on your input)
+
+### 3. Results Screen (`resultados`)
+
+Displays comprehensive simulation results including:
+
+- **Metrics Table** (`salida`): Shows arrival time, start time, finish time, waiting time, and turnaround time for each process
+- **Real-Time Simulation**: Visual representation with control buttons
+- **CPU Box**: Live display of the currently executing process
+- **Ready Queue** (`colaBox`): Shows processes waiting for CPU time
+- **Timeline/Gantt Chart** (`ganttLive`): Chronological visualization of process execution
+
+## UI Components
+
+### Input Components
+
+<Accordion title="Number of Processes Input">
+  The `numProcesos` input field accepts a positive integer representing how many processes you want to simulate. This determines how many process configuration forms will be generated.
+</Accordion>
+
+<Accordion title="Process Configuration Fields">
+  For each process, the following fields are dynamically generated:
+  
+  - **Llegada** (Arrival Time): When the process arrives in the system
+  - **CPU**: CPU burst time required by the process
+  - **Prioridad** (Priority): Only appears for Priority algorithm - lower numbers typically mean higher priority
+  - **Quantum**: Only appears for Round Robin - time slice for each process
+  - **Quantums por nivel**: Only appears for MLFQ - comma-separated quantum values for each queue level (e.g., "3,5,7")
+</Accordion>
+
+### Visualization Components
+
+<Tabs>
+  <Tab title="CPU Box">
+    The CPU box (`cpuBox`) is a prominent 32x32 pixel square with a gradient background (indigo to purple). It displays:
+    
+    - **"-"**: When simulation hasn't started
+    - **"Idle"**: When CPU is not executing any process
+    - **"P1", "P2", etc.**: The currently executing process number
+    
+    This component updates in real-time during simulation, providing immediate visual feedback about CPU utilization.
+  </Tab>
+  
+  <Tab title="Ready Queue">
+    The `colaBox` component shows processes waiting in the ready queue:
+    
+    - Each process appears as a gray box with rounded corners
+    - Processes have an animated pulse effect
+    - For MLFQ, this can display multiple queue levels as nested arrays
+    - Empty when no processes are waiting
+    
+    The queue updates dynamically as processes are added, removed, or moved between priority levels.
+  </Tab>
+  
+  <Tab title="Gantt Chart">
+    The `ganttLive` timeline component builds a horizontal Gantt chart:
+    
+    - Each time unit is represented by an 8x8 pixel block
+    - Blocks are colored indigo and show the process ID ("P1", "P2", etc.)
+    - **"-"** indicates CPU idle time
+    - Auto-scrolls horizontally as the simulation progresses
+    - Blocks have hover effects (scale on hover) for better interactivity
+  </Tab>
+</Tabs>
+
+### Control Buttons
+
+The simulator provides four main control buttons on the results screen:
+
+| Button | Icon | Function | Description |
+|--------|------|----------|-------------|
+| **Iniciar** | ▶ | `iniciarSimulacion()` | Starts the step-by-step animation with 500ms intervals |
+| **Pausar** | ⏸ | `pausarSimulacion()` | Pauses the animation at the current step |
+| **Reiniciar** | 🔄 | `reiniciarSimulacion()` | Resets the simulation to step 0, clearing all visual elements |
+| **Volver al inicio** | ⬅ | `volverInicio()` | Returns to algorithm selection, clearing all data |
+
+## Navigation Flow
+
+<Steps>
+  <Step title="Select Algorithm">
+    On the initial screen, click one of the five algorithm buttons (FIFO, SJF, Round Robin, Prioridad, or MLFQ). This sets the `algoritmoActual` variable and transitions to the input form.
+  </Step>
+  
+  <Step title="Enter Number of Processes">
+    In the form screen, enter a positive integer in the "Número de procesos" field and click "Continuar". The system validates this input and generates dynamic input fields.
+  </Step>
+  
+  <Step title="Configure Process Parameters">
+    Fill in the arrival time and CPU burst for each process. Depending on the algorithm:
+    - **Round Robin**: Enter the quantum value
+    - **Priority**: Enter priority value for each process
+    - **MLFQ**: Enter comma-separated quantum values for each queue level
+  </Step>
+  
+  <Step title="Run Simulation">
+    Click the "Simular" button. The system:
+    - Executes the selected algorithm
+    - Calculates metrics (waiting time, turnaround time, etc.)
+    - Generates a timeline for visual animation
+    - Displays the results screen with metrics table
+  </Step>
+  
+  <Step title="Control Visualization">
+    Use the control buttons (Iniciar, Pausar, Reiniciar) to watch the step-by-step simulation. The CPU box, ready queue, and Gantt chart update every 500ms to show process execution.
+  </Step>
+  
+  <Step title="Review Results">
+    Analyze the metrics table and visual timeline. When finished, click "Volver al inicio" to return to algorithm selection for a new simulation.
+  </Step>
+</Steps>
+
+<Note>
+  The interface uses a card-based layout with smooth transitions between screens. Only one screen is visible at a time, controlled by the `oculto` (hidden) CSS class.
+</Note>
+
+## Responsive Design
+
+The simulator interface uses Tailwind CSS for responsive styling:
+
+- **Flex layouts** adapt to different screen sizes
+- **Flex-wrap** ensures buttons and elements wrap on smaller screens
+- **Min-height** properties prevent layout collapse
+- **Overflow-x-auto** on the Gantt chart allows horizontal scrolling for long simulations
+
+<Warning>
+  Input validation is minimal in the current version. Always enter valid positive integers for process counts, arrival times, and CPU bursts to avoid calculation errors.
+</Warning>

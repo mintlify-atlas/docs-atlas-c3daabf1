@@ -1,0 +1,83 @@
+---
+title: CPU Scheduling Algorithms Overview
+description: Compare and understand different CPU scheduling algorithms available in the simulator
+---
+
+This section provides comprehensive documentation for all CPU scheduling algorithms implemented in the simulator. Each algorithm has different characteristics that make it suitable for specific use cases.
+
+## Available Algorithms
+
+The simulator implements five core CPU scheduling algorithms:
+
+- **FIFO (First In First Out)** - Simple queue-based scheduling
+- **SJF (Shortest Job First)** - Optimizes for shortest execution time
+- **Round Robin** - Time-sliced fair scheduling with quantum
+- **Priority Scheduling** - Priority-based non-preemptive scheduling
+- **MLFQ (Multi-Level Feedback Queue)** - Advanced multi-queue scheduling
+
+## Algorithm Comparison
+
+| Algorithm | Type | Preemptive | Parameters | Best For |
+|-----------|------|------------|------------|----------|
+| FIFO | Queue-based | No | Arrival time, CPU time | Simple batch processing |
+| SJF | Shortest first | No | Arrival time, CPU time | Minimizing average waiting time |
+| Round Robin | Time-sliced | Yes | Arrival time, CPU time, Quantum | Time-sharing systems |
+| Priority | Priority-based | No | Arrival time, CPU time, Priority | Critical task handling |
+| MLFQ | Multi-queue | Yes | Arrival time, CPU time, Quantum array | Complex interactive systems |
+
+## Key Metrics
+
+All algorithms calculate the following performance metrics:
+
+- **Start Time** - When the process first begins execution
+- **Finish Time** - When the process completes
+- **Waiting Time** - Total time spent waiting in ready queue
+- **Turnaround Time** - Total time from arrival to completion
+- **Total Time** - Overall completion time for all processes
+
+<Info>
+Waiting Time = Start Time - Arrival Time
+
+Turnaround Time = Finish Time - Arrival Time
+</Info>
+
+## Choosing an Algorithm
+
+### Use FIFO when:
+- Processes arrive in a predictable order
+- Simplicity is more important than optimization
+- Running batch jobs without time constraints
+
+### Use SJF when:
+- Process execution times are known in advance
+- Minimizing average waiting time is critical
+- Running non-interactive batch processes
+
+### Use Round Robin when:
+- Fair CPU time distribution is required
+- Running interactive or time-sharing systems
+- All processes should make progress regularly
+
+### Use Priority Scheduling when:
+- Some processes are more critical than others
+- You need control over execution order
+- Real-time constraints exist for certain tasks
+
+### Use MLFQ when:
+- Handling mixed workloads (interactive + batch)
+- Want automatic priority adjustment
+- Need sophisticated scheduling behavior
+
+<Warning>
+Non-preemptive algorithms (FIFO, SJF, Priority) can cause long waiting times if a long process executes while shorter processes wait.
+</Warning>
+
+## Next Steps
+
+Explore each algorithm in detail:
+
+- [FIFO Algorithm](/algorithms/fifo)
+- [SJF Algorithm](/algorithms/sjf)
+- [Round Robin Algorithm](/algorithms/round-robin)
+- [Priority Scheduling](/algorithms/priority)
+- [MLFQ Algorithm](/algorithms/mlfq)

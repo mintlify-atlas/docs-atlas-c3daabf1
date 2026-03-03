@@ -1,0 +1,244 @@
+---
+title: SJF (Shortest Job First)
+description: Understanding the Shortest Job First scheduling algorithm
+---
+
+## Overview
+
+SJF (Shortest Job First) is a CPU scheduling algorithm that selects the process with the shortest CPU burst time among all available processes. This algorithm minimizes average waiting time, making it optimal in that regard.
+
+<Info>
+SJF is a **non-preemptive** algorithm. Once a process starts execution, it runs to completion. The shortest job selection only happens when choosing the next process to run.
+</Info>
+
+## How It Works
+
+The SJF algorithm follows these steps:
+
+1. At each decision point, identify all processes that have arrived and are waiting
+2. Among available processes, select the one with the shortest CPU burst time
+3. Execute that process to completion (non-preemptive)
+4. Repeat until all processes complete
+5. If no processes are available, advance time until the next arrival
+
+## Algorithm Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `llegada` | Array | Arrival times for each process |
+| `cpu` | Array | CPU burst times (execution duration) |
+
+## Implementation
+
+Here's the core SJF algorithm logic:
+
+```javascript
+function sjf(llegada, cpu) {
+  let procesos = [];
+
+  // Create process objects
+  for (let i = 0; i < llegada.length; i++) {
+    procesos.push({
+      id: i,
+      llegada: llegada[i],
+      cpu: cpu[i],
+      terminado: false,
+    });
+  }
+
+  let inicio = [];
+  let finalizacion = [];
+  let espera = [];
+  let retorno = [];
+  let tiempo_actual = 0;
+  let completados = 0;
+  let n = procesos.length;
+
+  while (completados < n) {
+    // Find available processes
+    let disponibles = procesos.filter(
+      (p) => p.llegada <= tiempo_actual && !p.terminado
+    );
+
+    // If no process available, advance time
+    if (disponibles.length === 0) {
+      tiempo_actual++;
+      continue;
+    }
+
+    // Sort by CPU time (shortest first)
+    disponibles.sort((a, b) => a.cpu - b.cpu);
+
+    let proceso = disponibles[0];
+
+    let start = tiempo_actual;
+    let end = start + proceso.cpu;
+
+    inicio[proceso.id] = start;
+    finalizacion[proceso.id] = end;
+    espera[proceso.id] = start - proceso.llegada;
+    retorno[proceso.id] = end - proceso.llegada;
+
+    tiempo_actual = end;
+    proceso.terminado = true;
+    completados++;
+  }
+
+  return {
+    inicio,
+    finalizacion,
+    espera,
+    retorno,
+    tiempoTotal: Math.max(...finalizacion),
+  };
+}
+```
+
+## Example Walkthrough
+
+Let's simulate SJF with four processes:
+
+| Process | Arrival Time | CPU Time |
+|---------|-------------|----------|
+| P0 | 0 | 8 |
+| P1 | 1 | 4 |
+| P2 | 2 | 2 |
+| P3 | 3 | 1 |
+
+### Execution Timeline:
+
+```
+Time: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15
+      [----- P0 -----][P3][P2][-- P1 --]
+```
+
+### Step-by-Step:
+
+1. **Time 0**: P0 arrives and starts (only process available)
+2. **Time 1-3**: P1, P2, P3 arrive while P0 runs
+3. **Time 8**: P0 completes
+   - Available: P1 (CPU=4), P2 (CPU=2), P3 (CPU=1)
+   - **P3 selected** (shortest: 1)
+4. **Time 9**: P3 completes
+   - Available: P1 (CPU=4), P2 (CPU=2)
+   - **P2 selected** (shortest: 2)
+5. **Time 11**: P2 completes
+   - Available: P1 (CPU=4)
+   - **P1 selected**
+6. **Time 15**: P1 completes, all done
+
+### Results:
+
+| Process | Start | Finish | Waiting | Turnaround |
+|---------|-------|--------|---------|------------|
+| P0 | 0 | 8 | 0 | 8 |
+| P1 | 11 | 15 | 10 | 14 |
+| P2 | 9 | 11 | 7 | 9 |
+| P3 | 8 | 9 | 5 | 6 |
+
+**Average Waiting Time**: (0 + 10 + 7 + 5) / 4 = 5.5
+
+**Average Turnaround Time**: (8 + 14 + 9 + 6) / 4 = 9.25
+
+<Note>
+Compare this to FIFO execution order (P0, P1, P2, P3) which would give average waiting time of 7.75. SJF provides better average waiting time.
+</Note>
+
+## Key Characteristics
+
+### Advantages
+
+- **Optimal average waiting time** - Provably minimal among non-preemptive algorithms
+- Reduces number of processes waiting
+- Good throughput for short processes
+- Better than FIFO for mixed workloads
+
+### Disadvantages
+
+- **Starvation possible** - Long processes may wait indefinitely
+- Requires knowing CPU burst times in advance (often impractical)
+- Not fair - arrival order doesn't matter
+- Poor response time for long processes
+
+<Warning>
+**Starvation Risk**: If short processes keep arriving, longer processes may never execute. In production systems, this is typically mitigated by aging mechanisms.
+</Warning>
+
+## Tie-Breaking Rules
+
+When multiple processes have the same CPU burst time, the implementation uses:
+
+1. **First tie-breaker**: Earliest arrival time
+2. **Second tie-breaker**: Lowest process ID
+
+```javascript
+// Enhanced sorting with tie-breaking
+disponibles.sort((a, b) => {
+  if (a.cpu !== b.cpu) return a.cpu - b.cpu;
+  if (a.llegada !== b.llegada) return a.llegada - b.llegada;
+  return a.id - b.id;
+});
+```
+
+## Performance Characteristics
+
+- **Time Complexity**: O(n²) worst case (n iterations × sorting available processes)
+- **Space Complexity**: O(n) for storing process data
+- **Optimality**: Minimizes average waiting time (proven optimal)
+- **Throughput**: Excellent for short jobs, poor for long jobs
+
+## Predictive SJF
+
+In real systems, exact CPU burst times are unknown. SJF can be approximated using:
+
+- **Exponential averaging** of previous bursts
+- **Static estimates** based on process type
+- **User-provided estimates** (with penalties for inaccuracy)
+
+Formula for prediction:
+
+```
+τ(n+1) = α × t(n) + (1-α) × τ(n)
+
+Where:
+- τ(n+1) = predicted next burst
+- t(n) = actual previous burst
+- τ(n) = previous prediction
+- α = weighting factor (0 < α < 1)
+```
+
+## Use Cases
+
+<Note>
+SJF works best for:
+- Batch processing with known execution times
+- Background task scheduling
+- Systems where minimizing average waiting time is critical
+- Environments where short tasks dominate
+- Non-interactive workloads
+</Note>
+
+## Comparison with FIFO
+
+| Metric | FIFO | SJF |
+|--------|------|-----|
+| Avg Waiting Time | Higher | Lower (optimal) |
+| Fairness | Fair (arrival order) | Unfair (favors short jobs) |
+| Starvation | No | Yes (long processes) |
+| Implementation | Simpler | More complex |
+| Predictability | High | Low (depends on arrivals) |
+
+## Try It Out
+
+Use the simulator to experiment with SJF:
+
+1. Create processes with varying CPU burst times
+2. Observe how shorter jobs jump ahead of longer ones
+3. Try scenarios where long processes arrive first vs. last
+4. Compare with FIFO to see the waiting time improvement
+
+## Related Algorithms
+
+- [FIFO](/algorithms/fifo) - Simpler but less optimal
+- [Priority Scheduling](/algorithms/priority) - Generalizes SJF with explicit priorities
+- [Round Robin](/algorithms/round-robin) - Ensures all processes make progress
