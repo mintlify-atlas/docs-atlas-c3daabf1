@@ -1,0 +1,101 @@
+{
+  "projectType": "frontend",
+  "projectName": "CPU Scheduling Algorithms Simulator",
+  "projectDescription": "Interactive web simulator for visualizing classic CPU scheduling algorithms (FIFO, SJF, Round Robin, Priority, MLFQ) with real-time animations.",
+  "theme": "palm",
+  "primaryColor": "#6366f1",
+  "lightColor": "#a5b4fc",
+  "darkColor": "#4338ca",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Algorithms",
+            "pages": [
+              "algorithms/overview",
+              "algorithms/fifo",
+              "algorithms/sjf",
+              "algorithms/round-robin",
+              "algorithms/priority",
+              "algorithms/mlfq"
+            ]
+          },
+          {
+            "group": "Usage Guide",
+            "pages": [
+              "usage/interface",
+              "usage/simulation",
+              "usage/interpreting-results"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Functions",
+            "pages": [
+              "api/fifo-function",
+              "api/sjf-function",
+              "api/round-robin-function",
+              "api/priority-function",
+              "api/mlfq-function"
+            ]
+          },
+          {
+            "group": "UI Functions",
+            "pages": [
+              "api/ui-controls",
+              "api/timeline-generation"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Deployment",
+        "groups": [
+          {
+            "group": "Deployment Options",
+            "pages": [
+              "deployment/local",
+              "deployment/docker",
+              "deployment/cloud"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Five CPU scheduling algorithms (FIFO, SJF, Round Robin, Priority, MLFQ)",
+    "Real-time visual simulation with Gantt charts and process queues",
+    "Interactive process configuration with arrival times, CPU bursts, and priorities",
+    "Performance metrics calculation (waiting time, turnaround time)",
+    "Responsive design with Tailwind CSS",
+    "Zero backend dependencies - runs entirely in browser"
+  ],
+  "publicApiSurface": [
+    "fifo(llegada, cpu)",
+    "sjf(llegada, cpu)",
+    "roundRobin(llegada, cpu, quantum)",
+    "prioridad(llegada, cpu, prioridad)",
+    "mlfq(llegada, cpu, quantum)",
+    "seleccionarAlgoritmo(tipo)",
+    "generarInputs()",
+    "simular(n)",
+    "iniciarSimulacion()",
+    "pausarSimulacion()",
+    "reiniciarSimulacion()"
+  ]
+}
