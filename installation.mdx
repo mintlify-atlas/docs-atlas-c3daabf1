@@ -81,7 +81,7 @@ This is a 100% frontend application. All computation happens in the browser, mak
         Open your file explorer and go to:
         
         ```text
-        AlgoritmosPlanificacion/FIFO/
+        AlgoritmosPlanificacion/Planificacion/
         ```
       </Step>
       
@@ -109,7 +109,7 @@ This is a 100% frontend application. All computation happens in the browser, mak
     
     ```text
     AlgoritmosPlanificacion/
-    ├── FIFO/
+    ├── Planificacion/
     │   ├── css/
     │   │   └── styles.css          # Custom styling
     │   ├── JS/
@@ -142,7 +142,7 @@ This is a 100% frontend application. All computation happens in the browser, mak
       <Step title="Clone the Repository">
         ```bash
         git clone https://github.com/SebastianMoreno0911/AlgoritmosPlanificacion.git
-        cd AlgoritmosPlanificacion
+        cd AlgoritmosPlanificacion/Planificacion
         ```
       </Step>
       
@@ -302,26 +302,26 @@ For custom infrastructure, use any web server:
 <CodeGroup>
 ```bash Nginx
 # Copy files to nginx html directory
-sudo cp -r AlgoritmosPlanificacion/FIFO/* /usr/share/nginx/html/
+sudo cp -r AlgoritmosPlanificacion/Planificacion/* /usr/share/nginx/html/
 sudo systemctl restart nginx
 ```
 
 ```bash Apache
 # Copy files to apache html directory
-sudo cp -r AlgoritmosPlanificacion/FIFO/* /var/www/html/
+sudo cp -r AlgoritmosPlanificacion/Planificacion/* /var/www/html/
 sudo systemctl restart apache2
 ```
 
 ```bash Python (Development)
 # Simple HTTP server for testing
-cd AlgoritmosPlanificacion/FIFO
+cd AlgoritmosPlanificacion/Planificacion
 python3 -m http.server 8000
 # Access at http://localhost:8000
 ```
 
 ```bash Node.js (Development)
 # Using http-server package
-npx http-server AlgoritmosPlanificacion/FIFO -p 8000
+npx http-server AlgoritmosPlanificacion/Planificacion -p 8000
 # Access at http://localhost:8000
 ```
 </CodeGroup>
